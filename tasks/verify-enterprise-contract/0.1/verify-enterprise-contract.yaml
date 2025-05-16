@@ -179,7 +179,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:669bf10a33e7a713da5727868fe72a0ff6354a1e5eed9f42990bd2fadacad576
+      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:daa8ab57f24133ae92300e96d51ac861b95ece22aa89dafb2604a59465100bc1
       command: [ec]
       args:
         - sigstore
@@ -211,12 +211,12 @@ spec:
           value: $(params.SINGLE_COMPONENT_CUSTOM_RESOURCE_NS)
         - name: SNAPSHOT_PATH
           value: $(params.HOMEDIR)/snapshot.json
-      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:669bf10a33e7a713da5727868fe72a0ff6354a1e5eed9f42990bd2fadacad576
+      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:daa8ab57f24133ae92300e96d51ac861b95ece22aa89dafb2604a59465100bc1
       onError: continue # progress even if the step fails so we can see the debug logs
       command: [reduce-snapshot.sh]
 
     - name: validate
-      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:669bf10a33e7a713da5727868fe72a0ff6354a1e5eed9f42990bd2fadacad576
+      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:daa8ab57f24133ae92300e96d51ac861b95ece22aa89dafb2604a59465100bc1
       onError: continue # progress even if the step fails so we can see the debug logs
       command: [ec]
       args:
@@ -284,7 +284,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:669bf10a33e7a713da5727868fe72a0ff6354a1e5eed9f42990bd2fadacad576
+      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:daa8ab57f24133ae92300e96d51ac861b95ece22aa89dafb2604a59465100bc1
       onError: continue  # progress even if the step fails so we can see the debug logs
       command: [sh, -c]
       args:
@@ -303,7 +303,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:669bf10a33e7a713da5727868fe72a0ff6354a1e5eed9f42990bd2fadacad576
+      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:daa8ab57f24133ae92300e96d51ac861b95ece22aa89dafb2604a59465100bc1
       onError: continue  # progress even if the step fails so we can see the debug logs
       command: [jq]
       args:
@@ -317,7 +317,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:669bf10a33e7a713da5727868fe72a0ff6354a1e5eed9f42990bd2fadacad576
+      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:daa8ab57f24133ae92300e96d51ac861b95ece22aa89dafb2604a59465100bc1
       command: [printf]
       args:
         - "----- DEBUG OUTPUT -----\n"
@@ -329,7 +329,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:669bf10a33e7a713da5727868fe72a0ff6354a1e5eed9f42990bd2fadacad576
+      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:daa8ab57f24133ae92300e96d51ac861b95ece22aa89dafb2604a59465100bc1
       command: [ec]
       args:
         - version
@@ -341,7 +341,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:669bf10a33e7a713da5727868fe72a0ff6354a1e5eed9f42990bd2fadacad576
+      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:daa8ab57f24133ae92300e96d51ac861b95ece22aa89dafb2604a59465100bc1
       command: [jq]
       args:
         - '{policy: .policy, key: .key, "effective-time": .["effective-time"]}'
@@ -354,7 +354,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:669bf10a33e7a713da5727868fe72a0ff6354a1e5eed9f42990bd2fadacad576
+      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:daa8ab57f24133ae92300e96d51ac861b95ece22aa89dafb2604a59465100bc1
       command: [jq]
       args:
         - "--argjson"
