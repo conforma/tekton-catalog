@@ -199,7 +199,7 @@ spec:
       image: quay.io/redhat-appstudio/build-trusted-artifacts:e02102ede09aa07187cba066ad547a54724e5cf4
 
     - name: initialize-tuf
-      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:55a86155737476349007fdacfe68eead62a5d93a63ff5da52a6787dd9de98bef
+      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:9b7d65ba6bdb684b622b87b7edab9ff06204926e2598f3492990100d8d67598b
       script: |-
         set -euo pipefail
 
@@ -227,12 +227,12 @@ spec:
           value: $(params.SINGLE_COMPONENT_CUSTOM_RESOURCE_NS)
         - name: SNAPSHOT_PATH
           value: $(params.HOMEDIR)/snapshot.json
-      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:55a86155737476349007fdacfe68eead62a5d93a63ff5da52a6787dd9de98bef
+      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:9b7d65ba6bdb684b622b87b7edab9ff06204926e2598f3492990100d8d67598b
       onError: continue # progress even if the step fails so we can see the debug logs
       command: [reduce-snapshot.sh]
 
     - name: validate
-      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:55a86155737476349007fdacfe68eead62a5d93a63ff5da52a6787dd9de98bef
+      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:9b7d65ba6bdb684b622b87b7edab9ff06204926e2598f3492990100d8d67598b
       onError: continue # progress even if the step fails so we can see the debug logs
       command: [ec]
       args:
@@ -294,7 +294,7 @@ spec:
           readOnly: true
 
     - name: report-json
-      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:55a86155737476349007fdacfe68eead62a5d93a63ff5da52a6787dd9de98bef
+      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:9b7d65ba6bdb684b622b87b7edab9ff06204926e2598f3492990100d8d67598b
       onError: continue  # progress even if the step fails so we can see the debug logs
       command: [sh, -c]
       args:
@@ -307,7 +307,7 @@ spec:
         - "jq . $(params.HOMEDIR)/report-json.json | awk '{gsub(/^ +/, \"\"); acc += length; if (acc >= 8000) { printf \"\\n\"; acc=length } printf $0 }'"
 
     - name: summary
-      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:55a86155737476349007fdacfe68eead62a5d93a63ff5da52a6787dd9de98bef
+      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:9b7d65ba6bdb684b622b87b7edab9ff06204926e2598f3492990100d8d67598b
       onError: continue  # progress even if the step fails so we can see the debug logs
       command: [jq]
       args:
@@ -315,26 +315,26 @@ spec:
         - "$(results.TEST_OUTPUT.path)"
 
     - name: info
-      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:55a86155737476349007fdacfe68eead62a5d93a63ff5da52a6787dd9de98bef
+      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:9b7d65ba6bdb684b622b87b7edab9ff06204926e2598f3492990100d8d67598b
       command: [printf]
       args:
         - "----- DEBUG OUTPUT -----\n"
 
     - name: version
-      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:55a86155737476349007fdacfe68eead62a5d93a63ff5da52a6787dd9de98bef
+      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:9b7d65ba6bdb684b622b87b7edab9ff06204926e2598f3492990100d8d67598b
       command: [ec]
       args:
         - version
 
     - name: show-config
-      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:55a86155737476349007fdacfe68eead62a5d93a63ff5da52a6787dd9de98bef
+      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:9b7d65ba6bdb684b622b87b7edab9ff06204926e2598f3492990100d8d67598b
       command: [jq]
       args:
         - '{policy: .policy, key: .key, "effective-time": .["effective-time"]}'
         - "$(params.HOMEDIR)/report-json.json"
 
     - name: assert
-      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:55a86155737476349007fdacfe68eead62a5d93a63ff5da52a6787dd9de98bef
+      image: quay.io/enterprise-contract/ec-cli:snapshot@sha256:9b7d65ba6bdb684b622b87b7edab9ff06204926e2598f3492990100d8d67598b
       command: [jq]
       args:
         - "--argjson"
