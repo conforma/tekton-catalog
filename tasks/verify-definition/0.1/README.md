@@ -34,7 +34,7 @@ spec:
   - name: NAMESPACE
     value: policy.task.kind
   - name: POLICY_SOURCE
-    value: git::github.com/enterprise-contract/ec-policies//policy/task
+    value: git::github.com/conforma/policy//policy/task
   resources: {}
   serviceAccountName: default
   taskRef:
