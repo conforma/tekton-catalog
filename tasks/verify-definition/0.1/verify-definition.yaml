@@ -43,11 +43,11 @@ spec:
     - name: POLICY_LIB
       type: string
       description: The source containing the policy files libraries.
-      default: git::https://github.com/enterprise-contract/ec-policies//policy/lib
+      default: git::https://github.com/conforma/policy//policy/lib
     - name: POLICY_DATA
       type: string
       description: The source containing the policy files.
-      default: git::https://github.com/enterprise-contract/ec-policies//example/data
+      default: git::https://github.com/conforma/policy//example/data
     - name: HOMEDIR
       type: string
       description: Value for the HOME environment variable.
