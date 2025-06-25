@@ -16,7 +16,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Use this script to sync the task definitions with the task definitions
-# found in the enterprise-contract/ec-cli repository.
+# found in the conforma/cli repository.
 # Usage:
 #   sync-ec-cli-tasks.sh <PATH_TO_EC_CLI_REPO>
 
@@ -31,10 +31,10 @@ collect_remote_branches() {
   echo "$(git branch --remote --format '%(refname:lstrip=-1)' --sort=refname --list 'origin/release-v*')"
 }
 
-# get the ec-cli image each task is using and update with the pinned reference
+# get the ec image each task is using and update with the pinned reference
 update_task_images() {
   pushd tasks > /dev/null
-  images="$(grep -r -h -o -w 'quay.io/enterprise-contract/ec-cli:.*' | grep -v '@' | sort -u)"
+  images="$(grep -r -h -o -w 'quay.io/conforma/cli:.*' | grep -v '@' | sort -u)"
   for image in $images; do
     echo "Resolving image $image"
     digest="$(skopeo manifest-digest <(skopeo inspect --raw "docker://${image}"))"
@@ -62,7 +62,7 @@ add_tasks() {
   fi
 
   git add tasks
-  git commit -m "sync ec-cli task definitions"
+  git commit -m "sync ec task definitions"
   git push origin "${branch}"
 }
 
