@@ -156,6 +156,31 @@ spec:
       type: string
       default: ""
 
+    - name: RETRY_DURATION
+      type: string
+      description: Base duration for exponential backoff calculation (e.g., "1s", "500ms")
+      default: "1s"
+
+    - name: RETRY_FACTOR
+      type: string
+      description: Exponential backoff multiplier (e.g., "2.0", "1.5")
+      default: "2.0"
+
+    - name: RETRY_JITTER
+      type: string
+      description: Randomness factor for backoff calculation (0.0-1.0, e.g., "0.1", "0.2")
+      default: "0.1"
+
+    - name: RETRY_MAX_RETRY
+      type: string
+      description: Maximum number of retry attempts
+      default: "3"
+
+    - name: RETRY_MAX_WAIT
+      type: string
+      description: Maximum wait time between retries (e.g., "3s", "10s")
+      default: "3s"
+
   workspaces:
     - name: data
       description: The workspace where the snapshot spec json file resides
@@ -179,7 +204,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/conforma/cli:snapshot@sha256:2a93d25df7ad1e7b4ced7c5c8a3c8fef44b7d2a42db0be3ab15e1e73a43920a5
+      image: quay.io/conforma/cli:latest@sha256:e8658460d50484d79a619ed3b9c165dc2bc73e806fc8102599678f9d6564a3eb
       command: [ec]
       args:
         - sigstore
@@ -211,12 +236,12 @@ spec:
           value: $(params.SINGLE_COMPONENT_CUSTOM_RESOURCE_NS)
         - name: SNAPSHOT_PATH
           value: $(params.HOMEDIR)/snapshot.json
-      image: quay.io/conforma/cli:snapshot@sha256:2a93d25df7ad1e7b4ced7c5c8a3c8fef44b7d2a42db0be3ab15e1e73a43920a5
+      image: quay.io/conforma/cli:latest@sha256:e8658460d50484d79a619ed3b9c165dc2bc73e806fc8102599678f9d6564a3eb
       onError: continue # progress even if the step fails so we can see the debug logs
       command: [reduce-snapshot.sh]
 
     - name: validate
-      image: quay.io/conforma/cli:snapshot@sha256:2a93d25df7ad1e7b4ced7c5c8a3c8fef44b7d2a42db0be3ab15e1e73a43920a5
+      image: quay.io/conforma/cli:latest@sha256:e8658460d50484d79a619ed3b9c165dc2bc73e806fc8102599678f9d6564a3eb
       onError: continue # progress even if the step fails so we can see the debug logs
       command: [ec]
       args:
@@ -244,8 +269,18 @@ spec:
         - "--show-successes"
         - "--effective-time=$(params.EFFECTIVE_TIME)"
         - "--extra-rule-data=$(params.EXTRA_RULE_DATA)"
+        - "--retry-max-wait"
+        - "$(params.RETRY_MAX_WAIT)"
+        - "--retry-max-retry"
+        - "$(params.RETRY_MAX_RETRY)"
+        - "--retry-duration"
+        - "$(params.RETRY_DURATION)"
+        - "--retry-factor"
+        - "$(params.RETRY_FACTOR)"
+        - "--retry-jitter"
+        - "$(params.RETRY_JITTER)"
         - "--output"
-        - "text?show-successes=false"
+        - "text=$(params.HOMEDIR)/text-report.txt?show-successes=false"
         - "--output"
         - "appstudio=$(results.TEST_OUTPUT.path)"
         - "--output"
@@ -284,7 +319,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/conforma/cli:snapshot@sha256:2a93d25df7ad1e7b4ced7c5c8a3c8fef44b7d2a42db0be3ab15e1e73a43920a5
+      image: quay.io/conforma/cli:latest@sha256:e8658460d50484d79a619ed3b9c165dc2bc73e806fc8102599678f9d6564a3eb
       onError: continue  # progress even if the step fails so we can see the debug logs
       command: [sh, -c]
       args:
@@ -303,24 +338,12 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/conforma/cli:snapshot@sha256:2a93d25df7ad1e7b4ced7c5c8a3c8fef44b7d2a42db0be3ab15e1e73a43920a5
+      image: quay.io/conforma/cli:latest@sha256:e8658460d50484d79a619ed3b9c165dc2bc73e806fc8102599678f9d6564a3eb
       onError: continue  # progress even if the step fails so we can see the debug logs
       command: [jq]
       args:
         - "."
         - "$(results.TEST_OUTPUT.path)"
-
-    - name: info
-      computeResources:
-        requests:
-          cpu: 100m
-          memory: 256Mi
-        limits:
-          memory: 256Mi
-      image: quay.io/conforma/cli:snapshot@sha256:2a93d25df7ad1e7b4ced7c5c8a3c8fef44b7d2a42db0be3ab15e1e73a43920a5
-      command: [printf]
-      args:
-        - "----- DEBUG OUTPUT -----\n"
 
     - name: version
       computeResources:
@@ -329,7 +352,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/conforma/cli:snapshot@sha256:2a93d25df7ad1e7b4ced7c5c8a3c8fef44b7d2a42db0be3ab15e1e73a43920a5
+      image: quay.io/conforma/cli:latest@sha256:e8658460d50484d79a619ed3b9c165dc2bc73e806fc8102599678f9d6564a3eb
       command: [ec]
       args:
         - version
@@ -341,11 +364,18 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/conforma/cli:snapshot@sha256:2a93d25df7ad1e7b4ced7c5c8a3c8fef44b7d2a42db0be3ab15e1e73a43920a5
+      image: quay.io/conforma/cli:latest@sha256:e8658460d50484d79a619ed3b9c165dc2bc73e806fc8102599678f9d6564a3eb
       command: [jq]
       args:
         - '{policy: .policy, key: .key, "effective-time": .["effective-time"]}'
         - "$(params.HOMEDIR)/report-json.json"
+
+    - name: detailed-report
+      image: quay.io/conforma/cli:latest@sha256:e8658460d50484d79a619ed3b9c165dc2bc73e806fc8102599678f9d6564a3eb
+      onError: continue
+      command: ["cat"]
+      args:
+        - "$(params.HOMEDIR)/text-report.txt"
 
     - name: assert
       computeResources:
@@ -354,7 +384,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/conforma/cli:snapshot@sha256:2a93d25df7ad1e7b4ced7c5c8a3c8fef44b7d2a42db0be3ab15e1e73a43920a5
+      image: quay.io/conforma/cli:latest@sha256:e8658460d50484d79a619ed3b9c165dc2bc73e806fc8102599678f9d6564a3eb
       command: [jq]
       args:
         - "--argjson"
