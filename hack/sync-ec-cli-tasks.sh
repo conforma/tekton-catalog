@@ -34,7 +34,12 @@ collect_remote_branches() {
 # get the ec image each task is using and update with the pinned reference
 update_task_images() {
   pushd tasks > /dev/null
-  images="$(grep -r -h -o -w 'quay.io/conforma/cli:.*' | grep -v '@' | sort -u)"
+  images="$(grep -r -h -o -w 'quay.io/conforma/cli:.*' | grep -v '@' | sort -u || true)"
+  if [[ -z "${images}" ]]; then
+    echo "No unpinned images found - all images are already pinned"
+    popd > /dev/null
+    return
+  fi
   for image in $images; do
     echo "Resolving image $image"
     digest="$(skopeo manifest-digest <(skopeo inspect --raw "docker://${image}"))"
@@ -54,7 +59,6 @@ add_tasks() {
   popd > /dev/null
   git checkout -B "${branch}" --track "${remote_branch}"
   cp -r "${EC_CLI_REPO_PATH}/tasks" .
-  set -x
   update_task_images
   diff="$(git diff)"
   if [[ -z "${diff}" ]]; then
@@ -73,7 +77,7 @@ if [ -n "${GITHUB_ACTIONS:-}" ]; then
   mkdir -p "${HOME}/.ssh"
   echo "${DEPLOY_KEY}" > "${HOME}/.ssh/id_ed25519"
   chmod 600 "${HOME}/.ssh/id_ed25519"
-  trap 'rm -rf "${HOME}/.ssh/id_rsa"' EXIT
+  trap 'rm -rf "${HOME}/.ssh/id_ed25519"' EXIT
 fi
 
 tekton_catalog_branches=$(collect_remote_branches)
