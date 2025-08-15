@@ -54,6 +54,7 @@ add_tasks() {
   popd > /dev/null
   git checkout -B "${branch}" --track "${remote_branch}"
   cp -r "${EC_CLI_REPO_PATH}/tasks" .
+  set -x
   update_task_images
   diff="$(git diff)"
   if [[ -z "${diff}" ]]; then
