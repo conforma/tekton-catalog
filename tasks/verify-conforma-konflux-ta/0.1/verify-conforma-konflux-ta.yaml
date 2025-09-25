@@ -225,7 +225,7 @@ spec:
       image: quay.io/redhat-appstudio/build-trusted-artifacts:e02102ede09aa07187cba066ad547a54724e5cf4
 
     - name: initialize-tuf
-      image: quay.io/conforma/cli:latest@sha256:e980e9f818bb1278111527cb3aee7f87fa2178558624425d5ddf47e1a84b3572
+      image: quay.io/conforma/cli:latest@sha256:e45f50d5f2206894f9ffcdd3f1eb7edfd59517ba1ca9cf5cc033bb0a6c0d259a
       script: |-
         set -euo pipefail
 
@@ -253,12 +253,12 @@ spec:
           value: $(params.SINGLE_COMPONENT_CUSTOM_RESOURCE_NS)
         - name: SNAPSHOT_PATH
           value: $(params.HOMEDIR)/snapshot.json
-      image: quay.io/conforma/cli:latest@sha256:e980e9f818bb1278111527cb3aee7f87fa2178558624425d5ddf47e1a84b3572
+      image: quay.io/conforma/cli:latest@sha256:e45f50d5f2206894f9ffcdd3f1eb7edfd59517ba1ca9cf5cc033bb0a6c0d259a
       onError: continue # progress even if the step fails so we can see the debug logs
       command: [reduce-snapshot.sh]
 
     - name: validate
-      image: quay.io/conforma/cli:latest@sha256:e980e9f818bb1278111527cb3aee7f87fa2178558624425d5ddf47e1a84b3572
+      image: quay.io/conforma/cli:latest@sha256:e45f50d5f2206894f9ffcdd3f1eb7edfd59517ba1ca9cf5cc033bb0a6c0d259a
       onError: continue # progress even if the step fails so we can see the debug logs
       command: [ec]
       args:
@@ -330,7 +330,7 @@ spec:
           readOnly: true
 
     - name: report-json
-      image: quay.io/conforma/cli:latest@sha256:e980e9f818bb1278111527cb3aee7f87fa2178558624425d5ddf47e1a84b3572
+      image: quay.io/conforma/cli:latest@sha256:e45f50d5f2206894f9ffcdd3f1eb7edfd59517ba1ca9cf5cc033bb0a6c0d259a
       onError: continue  # progress even if the step fails so we can see the debug logs
       command: [sh, -c]
       args:
@@ -343,7 +343,7 @@ spec:
         - "jq . $(params.HOMEDIR)/report-json.json | awk '{gsub(/^ +/, \"\"); acc += length; if (acc >= 8000) { printf \"\\n\"; acc=length } printf $0 }'"
 
     - name: summary
-      image: quay.io/conforma/cli:latest@sha256:e980e9f818bb1278111527cb3aee7f87fa2178558624425d5ddf47e1a84b3572
+      image: quay.io/conforma/cli:latest@sha256:e45f50d5f2206894f9ffcdd3f1eb7edfd59517ba1ca9cf5cc033bb0a6c0d259a
       onError: continue  # progress even if the step fails so we can see the debug logs
       command: [jq]
       args:
@@ -351,27 +351,27 @@ spec:
         - "$(results.TEST_OUTPUT.path)"
 
     - name: version
-      image: quay.io/conforma/cli:latest@sha256:e980e9f818bb1278111527cb3aee7f87fa2178558624425d5ddf47e1a84b3572
+      image: quay.io/conforma/cli:latest@sha256:e45f50d5f2206894f9ffcdd3f1eb7edfd59517ba1ca9cf5cc033bb0a6c0d259a
       command: [ec]
       args:
         - version
 
     - name: show-config
-      image: quay.io/conforma/cli:latest@sha256:e980e9f818bb1278111527cb3aee7f87fa2178558624425d5ddf47e1a84b3572
+      image: quay.io/conforma/cli:latest@sha256:e45f50d5f2206894f9ffcdd3f1eb7edfd59517ba1ca9cf5cc033bb0a6c0d259a
       command: [jq]
       args:
         - '{policy: .policy, key: .key, "effective-time": .["effective-time"]}'
         - "$(params.HOMEDIR)/report-json.json"
 
     - name: detailed-report
-      image: quay.io/conforma/cli:latest@sha256:e980e9f818bb1278111527cb3aee7f87fa2178558624425d5ddf47e1a84b3572
+      image: quay.io/conforma/cli:latest@sha256:e45f50d5f2206894f9ffcdd3f1eb7edfd59517ba1ca9cf5cc033bb0a6c0d259a
       onError: continue
       command: ["cat"]
       args:
         - "$(params.HOMEDIR)/text-report.txt"
 
     - name: assert
-      image: quay.io/conforma/cli:latest@sha256:e980e9f818bb1278111527cb3aee7f87fa2178558624425d5ddf47e1a84b3572
+      image: quay.io/conforma/cli:latest@sha256:e45f50d5f2206894f9ffcdd3f1eb7edfd59517ba1ca9cf5cc033bb0a6c0d259a
       command: [jq]
       args:
         - "--argjson"
