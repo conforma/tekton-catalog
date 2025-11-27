@@ -235,7 +235,7 @@ spec:
         quay.io/redhat-appstudio/build-trusted-artifacts:e02102ede09aa07187cba066ad547a54724e5cf4
 
     - name: initialize-tuf
-      image: quay.io/conforma/cli:latest@sha256:f5c86ea59fc75f35d33e1fe70df5ff78af9efa4b4201834336fc653672cd01ff
+      image: quay.io/conforma/cli:latest@sha256:43e7251b50bcc451e409daaafd56fe9885dddfc0a2fda651621d9850b36e688e
       script: |-
         set -euo pipefail
         if [[ -z "${TUF_MIRROR:-}" ]]; then
@@ -251,7 +251,7 @@ spec:
           value: "$(params.TUF_MIRROR)"
 
     - name: reduce
-      image: quay.io/conforma/cli:latest@sha256:f5c86ea59fc75f35d33e1fe70df5ff78af9efa4b4201834336fc653672cd01ff
+      image: quay.io/conforma/cli:latest@sha256:43e7251b50bcc451e409daaafd56fe9885dddfc0a2fda651621d9850b36e688e
       onError: continue
       command: [reduce-snapshot.sh]
       env:
@@ -270,7 +270,7 @@ spec:
     # Phase 1: Validate VSA (CLI will internally fall back to image
     # validation if VSA missing/expired)
     - name: validate-vsa
-      image: quay.io/conforma/cli:latest@sha256:f5c86ea59fc75f35d33e1fe70df5ff78af9efa4b4201834336fc653672cd01ff
+      image: quay.io/conforma/cli:latest@sha256:43e7251b50bcc451e409daaafd56fe9885dddfc0a2fda651621d9850b36e688e
       onError: continue
       command: [ec]
       args:
@@ -312,7 +312,7 @@ spec:
           readOnly: true
     # Phase 2: Validate Image with release-time rules only
     - name: validate-image-release
-      image: quay.io/conforma/cli:latest@sha256:f5c86ea59fc75f35d33e1fe70df5ff78af9efa4b4201834336fc653672cd01ff
+      image: quay.io/conforma/cli:latest@sha256:43e7251b50bcc451e409daaafd56fe9885dddfc0a2fda651621d9850b36e688e
       # progress even if the step fails so we can see the debug logs
       onError: continue
       command: [ec]
@@ -396,12 +396,12 @@ spec:
           readOnly: true
 
     - name: version
-      image: quay.io/conforma/cli:latest@sha256:f5c86ea59fc75f35d33e1fe70df5ff78af9efa4b4201834336fc653672cd01ff
+      image: quay.io/conforma/cli:latest@sha256:43e7251b50bcc451e409daaafd56fe9885dddfc0a2fda651621d9850b36e688e
       command: [ec]
       args: ["version"]
 
     - name: show-config
-      image: quay.io/conforma/cli:latest@sha256:f5c86ea59fc75f35d33e1fe70df5ff78af9efa4b4201834336fc653672cd01ff
+      image: quay.io/conforma/cli:latest@sha256:43e7251b50bcc451e409daaafd56fe9885dddfc0a2fda651621d9850b36e688e
       command: [sh, -c]
       # yamllint disable rule:line-length
       args:
@@ -413,7 +413,7 @@ spec:
 
     # Final assert: both phases must be SUCCESS (or WARNING if STRICT=false)
     - name: assert
-      image: quay.io/conforma/cli:latest@sha256:f5c86ea59fc75f35d33e1fe70df5ff78af9efa4b4201834336fc653672cd01ff
+      image: quay.io/conforma/cli:latest@sha256:43e7251b50bcc451e409daaafd56fe9885dddfc0a2fda651621d9850b36e688e
       command: [sh, -c]
       args:
         - |
