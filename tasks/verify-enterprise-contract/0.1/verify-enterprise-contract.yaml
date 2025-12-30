@@ -204,7 +204,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/conforma/cli:latest@sha256:6dc53e3f010d56422a98c35b64b335a59dac748f624b75ae4c6d2d098d12828e
+      image: quay.io/conforma/cli:latest@sha256:e80d651b2b0ca42b60846b5886603769245f4709529d405c6cd66cb895773bd0
       command: [ec]
       args:
         - sigstore
@@ -236,12 +236,12 @@ spec:
           value: $(params.SINGLE_COMPONENT_CUSTOM_RESOURCE_NS)
         - name: SNAPSHOT_PATH
           value: $(params.HOMEDIR)/snapshot.json
-      image: quay.io/conforma/cli:latest@sha256:6dc53e3f010d56422a98c35b64b335a59dac748f624b75ae4c6d2d098d12828e
+      image: quay.io/conforma/cli:latest@sha256:e80d651b2b0ca42b60846b5886603769245f4709529d405c6cd66cb895773bd0
       onError: continue # progress even if the step fails so we can see the debug logs
       command: [reduce-snapshot.sh]
 
     - name: validate
-      image: quay.io/conforma/cli:latest@sha256:6dc53e3f010d56422a98c35b64b335a59dac748f624b75ae4c6d2d098d12828e
+      image: quay.io/conforma/cli:latest@sha256:e80d651b2b0ca42b60846b5886603769245f4709529d405c6cd66cb895773bd0
       onError: continue # progress even if the step fails so we can see the debug logs
       command: [ec]
       args:
@@ -319,7 +319,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/conforma/cli:latest@sha256:6dc53e3f010d56422a98c35b64b335a59dac748f624b75ae4c6d2d098d12828e
+      image: quay.io/conforma/cli:latest@sha256:e80d651b2b0ca42b60846b5886603769245f4709529d405c6cd66cb895773bd0
       onError: continue  # progress even if the step fails so we can see the debug logs
       command: [sh, -c]
       args:
@@ -338,7 +338,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/conforma/cli:latest@sha256:6dc53e3f010d56422a98c35b64b335a59dac748f624b75ae4c6d2d098d12828e
+      image: quay.io/conforma/cli:latest@sha256:e80d651b2b0ca42b60846b5886603769245f4709529d405c6cd66cb895773bd0
       onError: continue  # progress even if the step fails so we can see the debug logs
       command: [jq]
       args:
@@ -352,7 +352,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/conforma/cli:latest@sha256:6dc53e3f010d56422a98c35b64b335a59dac748f624b75ae4c6d2d098d12828e
+      image: quay.io/conforma/cli:latest@sha256:e80d651b2b0ca42b60846b5886603769245f4709529d405c6cd66cb895773bd0
       command: [ec]
       args:
         - version
@@ -364,14 +364,14 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/conforma/cli:latest@sha256:6dc53e3f010d56422a98c35b64b335a59dac748f624b75ae4c6d2d098d12828e
+      image: quay.io/conforma/cli:latest@sha256:e80d651b2b0ca42b60846b5886603769245f4709529d405c6cd66cb895773bd0
       command: [jq]
       args:
         - '{policy: .policy, key: .key, "effective-time": .["effective-time"]}'
         - "$(params.HOMEDIR)/report-json.json"
 
     - name: detailed-report
-      image: quay.io/conforma/cli:latest@sha256:6dc53e3f010d56422a98c35b64b335a59dac748f624b75ae4c6d2d098d12828e
+      image: quay.io/conforma/cli:latest@sha256:e80d651b2b0ca42b60846b5886603769245f4709529d405c6cd66cb895773bd0
       onError: continue
       command: ["cat"]
       args:
@@ -384,7 +384,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/conforma/cli:latest@sha256:6dc53e3f010d56422a98c35b64b335a59dac748f624b75ae4c6d2d098d12828e
+      image: quay.io/conforma/cli:latest@sha256:e80d651b2b0ca42b60846b5886603769245f4709529d405c6cd66cb895773bd0
       command: [jq]
       args:
         - "--argjson"
