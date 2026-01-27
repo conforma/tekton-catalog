@@ -125,13 +125,6 @@ spec:
       description: Merge additional Rego variables into the policy data. Use syntax "key=value,key2=value2..."
       default: ""
 
-    - name: TIMEOUT
-      type: string
-      description: >
-        This param is deprecated and will be removed in future. Its value is ignored. EC will
-        be run without a timeout. (If you do want to apply a timeout use the Tekton task timeout.)
-      default: ""
-
     - name: WORKERS
       type: string
       description: Number of parallel workers to use for policy evaluation.
@@ -204,7 +197,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/conforma/cli:latest@sha256:132a9b1648c210f5a8b13cd679331b2cb91d539fed3376fadefab486d370d3f5
+      image: quay.io/conforma/cli:latest@sha256:072cb155be9294b4e68a8f20ea861a0b7ec8844e868ac59f9f4a0ed826f608c9
       command: [ec]
       args:
         - sigstore
@@ -236,12 +229,12 @@ spec:
           value: $(params.SINGLE_COMPONENT_CUSTOM_RESOURCE_NS)
         - name: SNAPSHOT_PATH
           value: $(params.HOMEDIR)/snapshot.json
-      image: quay.io/conforma/cli:latest@sha256:132a9b1648c210f5a8b13cd679331b2cb91d539fed3376fadefab486d370d3f5
+      image: quay.io/conforma/cli:latest@sha256:072cb155be9294b4e68a8f20ea861a0b7ec8844e868ac59f9f4a0ed826f608c9
       onError: continue # progress even if the step fails so we can see the debug logs
       command: [reduce-snapshot.sh]
 
     - name: validate
-      image: quay.io/conforma/cli:latest@sha256:132a9b1648c210f5a8b13cd679331b2cb91d539fed3376fadefab486d370d3f5
+      image: quay.io/conforma/cli:latest@sha256:072cb155be9294b4e68a8f20ea861a0b7ec8844e868ac59f9f4a0ed826f608c9
       onError: continue # progress even if the step fails so we can see the debug logs
       command: [ec]
       args:
@@ -319,7 +312,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/conforma/cli:latest@sha256:132a9b1648c210f5a8b13cd679331b2cb91d539fed3376fadefab486d370d3f5
+      image: quay.io/conforma/cli:latest@sha256:072cb155be9294b4e68a8f20ea861a0b7ec8844e868ac59f9f4a0ed826f608c9
       onError: continue  # progress even if the step fails so we can see the debug logs
       command: [sh, -c]
       args:
@@ -338,7 +331,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/conforma/cli:latest@sha256:132a9b1648c210f5a8b13cd679331b2cb91d539fed3376fadefab486d370d3f5
+      image: quay.io/conforma/cli:latest@sha256:072cb155be9294b4e68a8f20ea861a0b7ec8844e868ac59f9f4a0ed826f608c9
       onError: continue  # progress even if the step fails so we can see the debug logs
       command: [jq]
       args:
@@ -352,7 +345,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/conforma/cli:latest@sha256:132a9b1648c210f5a8b13cd679331b2cb91d539fed3376fadefab486d370d3f5
+      image: quay.io/conforma/cli:latest@sha256:072cb155be9294b4e68a8f20ea861a0b7ec8844e868ac59f9f4a0ed826f608c9
       command: [ec]
       args:
         - version
@@ -364,14 +357,14 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/conforma/cli:latest@sha256:132a9b1648c210f5a8b13cd679331b2cb91d539fed3376fadefab486d370d3f5
+      image: quay.io/conforma/cli:latest@sha256:072cb155be9294b4e68a8f20ea861a0b7ec8844e868ac59f9f4a0ed826f608c9
       command: [jq]
       args:
         - '{policy: .policy, key: .key, "effective-time": .["effective-time"]}'
         - "$(params.HOMEDIR)/report-json.json"
 
     - name: detailed-report
-      image: quay.io/conforma/cli:latest@sha256:132a9b1648c210f5a8b13cd679331b2cb91d539fed3376fadefab486d370d3f5
+      image: quay.io/conforma/cli:latest@sha256:072cb155be9294b4e68a8f20ea861a0b7ec8844e868ac59f9f4a0ed826f608c9
       onError: continue
       command: ["cat"]
       args:
@@ -384,7 +377,7 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
-      image: quay.io/conforma/cli:latest@sha256:132a9b1648c210f5a8b13cd679331b2cb91d539fed3376fadefab486d370d3f5
+      image: quay.io/conforma/cli:latest@sha256:072cb155be9294b4e68a8f20ea861a0b7ec8844e868ac59f9f4a0ed826f608c9
       command: [jq]
       args:
         - "--argjson"
