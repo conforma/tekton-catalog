@@ -256,7 +256,7 @@ spec:
       image: quay.io/redhat-appstudio/build-trusted-artifacts:e02102ede09aa07187cba066ad547a54724e5cf4
 
     - name: initialize-tuf
-      image: quay.io/conforma/cli:latest@sha256:f25ec1b865f666c3a0857eb2dd7aa468f00cf76bed452f6de08ab1f6fee324e7
+      image: quay.io/conforma/cli:latest@sha256:a657874254ab802cebc398c0e5e8ee5fac16a52219a35a33d7041ce6f47bc5d5
       script: |-
         set -euo pipefail
 
@@ -284,23 +284,24 @@ spec:
           value: $(params.SINGLE_COMPONENT_CUSTOM_RESOURCE_NS)
         - name: SNAPSHOT_PATH
           value: $(params.HOMEDIR)/snapshot.json
-      image: quay.io/conforma/cli:latest@sha256:f25ec1b865f666c3a0857eb2dd7aa468f00cf76bed452f6de08ab1f6fee324e7
+      image: quay.io/conforma/cli:latest@sha256:a657874254ab802cebc398c0e5e8ee5fac16a52219a35a33d7041ce6f47bc5d5
       onError: continue # progress even if the step fails so we can see the debug logs
       command: [reduce-snapshot.sh]
 
     - name: validate
-      image: quay.io/conforma/cli:latest@sha256:f25ec1b865f666c3a0857eb2dd7aa468f00cf76bed452f6de08ab1f6fee324e7
+      image: quay.io/conforma/cli:latest@sha256:a657874254ab802cebc398c0e5e8ee5fac16a52219a35a33d7041ce6f47bc5d5
       onError: continue # progress even if the step fails so we can see the debug logs
       script: |
         #!/bin/bash
         set -euo pipefail
 
-        # Build EC arguments
+        # Build EC arguments array
+        # POLICY_CONFIGURATION is passed via environment variable to safely handle JSON strings
         EC_ARGS=(
           validate
           image
           --images /tekton/home/snapshot.json
-          --policy "$(params.POLICY_CONFIGURATION)"
+          --policy "${POLICY_CONFIGURATION}"
           --public-key "$(params.PUBLIC_KEY)"
           --rekor-url "$(params.REKOR_HOST)"
           --ignore-rekor=$(params.IGNORE_REKOR)
@@ -311,6 +312,9 @@ spec:
           --show-successes
           --effective-time=$(params.EFFECTIVE_TIME)
           --extra-rule-data=$(params.EXTRA_RULE_DATA)
+        )
+
+        EC_ARGS+=(
           --retry-max-wait "$(params.RETRY_MAX_WAIT)"
           --retry-max-retry "$(params.RETRY_MAX_RETRY)"
           --retry-duration "$(params.RETRY_DURATION)"
@@ -327,7 +331,7 @@ spec:
 
           if [[ "$(params.ATTESTATION_FORMAT)" == "dsse" ]]; then
             if [[ -z "$(params.VSA_SIGNING_KEY)" ]]; then
-              echo "ERROR: VSA_SIGNING_KEY required for format=dsse"
+              echo "ERROR: VSA_SIGNING_KEY required for format=dsse" >&2
               exit 1
             fi
             EC_ARGS+=(--vsa-signing-key "$(params.VSA_SIGNING_KEY)")
@@ -342,6 +346,10 @@ spec:
         # Execute EC with constructed arguments
         ec "${EC_ARGS[@]}"
       env:
+        # POLICY_CONFIGURATION is passed via environment variable to safely handle JSON strings
+        # This avoids shell quoting issues when Tekton substitutes parameter values directly in scripts
+        - name: POLICY_CONFIGURATION
+          value: "$(params.POLICY_CONFIGURATION)"
         - name: SSL_CERT_DIR
           # The Tekton Operator automatically sets the SSL_CERT_DIR env to the value below but,
           # of course, without the $(param.SSL_CERT_DIR) bit. When a Task Step sets it to a
@@ -369,7 +377,7 @@ spec:
           readOnly: true
 
     - name: report-json
-      image: quay.io/conforma/cli:latest@sha256:f25ec1b865f666c3a0857eb2dd7aa468f00cf76bed452f6de08ab1f6fee324e7
+      image: quay.io/conforma/cli:latest@sha256:a657874254ab802cebc398c0e5e8ee5fac16a52219a35a33d7041ce6f47bc5d5
       onError: continue  # progress even if the step fails so we can see the debug logs
       command: [sh, -c]
       args:
@@ -382,7 +390,7 @@ spec:
         - "jq . $(params.HOMEDIR)/report-json.json | awk '{gsub(/^ +/, \"\"); acc += length; if (acc >= 8000) { printf \"\\n\"; acc=length } printf $0 }'"
 
     - name: summary
-      image: quay.io/conforma/cli:latest@sha256:f25ec1b865f666c3a0857eb2dd7aa468f00cf76bed452f6de08ab1f6fee324e7
+      image: quay.io/conforma/cli:latest@sha256:a657874254ab802cebc398c0e5e8ee5fac16a52219a35a33d7041ce6f47bc5d5
       onError: continue  # progress even if the step fails so we can see the debug logs
       command: [jq]
       args:
@@ -390,27 +398,27 @@ spec:
         - "$(results.TEST_OUTPUT.path)"
 
     - name: version
-      image: quay.io/conforma/cli:latest@sha256:f25ec1b865f666c3a0857eb2dd7aa468f00cf76bed452f6de08ab1f6fee324e7
+      image: quay.io/conforma/cli:latest@sha256:a657874254ab802cebc398c0e5e8ee5fac16a52219a35a33d7041ce6f47bc5d5
       command: [ec]
       args:
         - version
 
     - name: show-config
-      image: quay.io/conforma/cli:latest@sha256:f25ec1b865f666c3a0857eb2dd7aa468f00cf76bed452f6de08ab1f6fee324e7
+      image: quay.io/conforma/cli:latest@sha256:a657874254ab802cebc398c0e5e8ee5fac16a52219a35a33d7041ce6f47bc5d5
       command: [jq]
       args:
         - '{policy: .policy, key: .key, "effective-time": .["effective-time"]}'
         - "$(params.HOMEDIR)/report-json.json"
 
     - name: detailed-report
-      image: quay.io/conforma/cli:latest@sha256:f25ec1b865f666c3a0857eb2dd7aa468f00cf76bed452f6de08ab1f6fee324e7
+      image: quay.io/conforma/cli:latest@sha256:a657874254ab802cebc398c0e5e8ee5fac16a52219a35a33d7041ce6f47bc5d5
       onError: continue
       command: ["cat"]
       args:
         - "$(params.HOMEDIR)/text-report.txt"
 
     - name: assert
-      image: quay.io/conforma/cli:latest@sha256:f25ec1b865f666c3a0857eb2dd7aa468f00cf76bed452f6de08ab1f6fee324e7
+      image: quay.io/conforma/cli:latest@sha256:a657874254ab802cebc398c0e5e8ee5fac16a52219a35a33d7041ce6f47bc5d5
       command: [jq]
       args:
         - "--argjson"
