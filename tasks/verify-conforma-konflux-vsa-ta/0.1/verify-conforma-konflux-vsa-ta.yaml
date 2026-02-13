@@ -129,7 +129,7 @@ spec:
       type: string
       description: >
         Merge additional Rego variables into the policy data. Syntax:
-        key=val,key2=val2
+        key=val,key2=val2. Note: pipeline_intention=release is always included.
       default: ""
 
     - name: WORKERS
@@ -228,7 +228,7 @@ spec:
         quay.io/redhat-appstudio/build-trusted-artifacts:e02102ede09aa07187cba066ad547a54724e5cf4
 
     - name: initialize-tuf
-      image: quay.io/conforma/cli:latest@sha256:2adfb8b68d13cf12f297ae9edcebc8dbf7eead2fbfbc5f92bee0a43d092919b7
+      image: quay.io/conforma/cli:latest@sha256:dfb11218c17e30cb4a05b7bf59a4b810cdf151d96b0277fd142a23ac050e3dc1
       script: |-
         set -euo pipefail
         if [[ -z "${TUF_MIRROR:-}" ]]; then
@@ -244,7 +244,7 @@ spec:
           value: "$(params.TUF_MIRROR)"
 
     - name: reduce
-      image: quay.io/conforma/cli:latest@sha256:2adfb8b68d13cf12f297ae9edcebc8dbf7eead2fbfbc5f92bee0a43d092919b7
+      image: quay.io/conforma/cli:latest@sha256:dfb11218c17e30cb4a05b7bf59a4b810cdf151d96b0277fd142a23ac050e3dc1
       onError: continue
       command: [reduce-snapshot.sh]
       env:
@@ -263,7 +263,7 @@ spec:
     # Phase 1: Validate VSA (CLI will internally fall back to image
     # validation if VSA missing/expired)
     - name: validate-vsa
-      image: quay.io/conforma/cli:latest@sha256:2adfb8b68d13cf12f297ae9edcebc8dbf7eead2fbfbc5f92bee0a43d092919b7
+      image: quay.io/conforma/cli:latest@sha256:dfb11218c17e30cb4a05b7bf59a4b810cdf151d96b0277fd142a23ac050e3dc1
       onError: continue
       command: [ec]
       args:
@@ -305,7 +305,7 @@ spec:
           readOnly: true
     # Phase 2: Validate Image with release-time rules only
     - name: validate-image-release
-      image: quay.io/conforma/cli:latest@sha256:2adfb8b68d13cf12f297ae9edcebc8dbf7eead2fbfbc5f92bee0a43d092919b7
+      image: quay.io/conforma/cli:latest@sha256:dfb11218c17e30cb4a05b7bf59a4b810cdf151d96b0277fd142a23ac050e3dc1
       # progress even if the step fails so we can see the debug logs
       onError: continue
       command: [ec]
@@ -338,6 +338,7 @@ spec:
         - "--show-successes"
         - "--effective-time=$(params.EFFECTIVE_TIME)"
         - "--extra-rule-data=pipeline_intention=release"
+        - "--extra-rule-data=$(params.EXTRA_RULE_DATA)"
         - "--retry-max-wait"
         - "$(params.RETRY_MAX_WAIT)"
         - "--retry-max-retry"
@@ -389,12 +390,12 @@ spec:
           readOnly: true
 
     - name: version
-      image: quay.io/conforma/cli:latest@sha256:2adfb8b68d13cf12f297ae9edcebc8dbf7eead2fbfbc5f92bee0a43d092919b7
+      image: quay.io/conforma/cli:latest@sha256:dfb11218c17e30cb4a05b7bf59a4b810cdf151d96b0277fd142a23ac050e3dc1
       command: [ec]
       args: ["version"]
 
     - name: show-config
-      image: quay.io/conforma/cli:latest@sha256:2adfb8b68d13cf12f297ae9edcebc8dbf7eead2fbfbc5f92bee0a43d092919b7
+      image: quay.io/conforma/cli:latest@sha256:dfb11218c17e30cb4a05b7bf59a4b810cdf151d96b0277fd142a23ac050e3dc1
       command: [sh, -c]
       # yamllint disable rule:line-length
       args:
@@ -406,7 +407,7 @@ spec:
 
     # Final assert: both phases must be SUCCESS (or WARNING if STRICT=false)
     - name: assert
-      image: quay.io/conforma/cli:latest@sha256:2adfb8b68d13cf12f297ae9edcebc8dbf7eead2fbfbc5f92bee0a43d092919b7
+      image: quay.io/conforma/cli:latest@sha256:dfb11218c17e30cb4a05b7bf59a4b810cdf151d96b0277fd142a23ac050e3dc1
       command: [sh, -c]
       args:
         - |
