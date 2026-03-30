@@ -3,9 +3,6 @@ name: sync-ec-tasks
 
 on:
   workflow_dispatch:
-  schedule:
-    # At 09:00 UTC on Tuesday
-    - cron: '0 9 * * 1-5'
 
 permissions:
   contents: read
