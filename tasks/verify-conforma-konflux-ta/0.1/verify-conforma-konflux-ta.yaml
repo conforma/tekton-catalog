@@ -1,80 +1,66 @@
----
-# Copyright The Conforma Contributors
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-# SPDX-License-Identifier: Apache-2.0
-
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: verify-conforma-konflux-ta
   annotations:
     tekton.dev/displayName: Verify Conforma in Konflux
     tekton.dev/pipelines.minVersion: "0.19"
     tekton.dev/tags: ec, chains, signature, conftest
   labels:
     app.kubernetes.io/version: "0.1"
-
+  name: verify-conforma-konflux-ta
 spec:
   description: Verify the enterprise contract is met
   params:
-    - name: SNAPSHOT_FILENAME
-      type: string
-      description: |
+    - description: |
         The filename of the `Snapshot` that is located within the trusted artifact
-
-    - name: SOURCE_DATA_ARTIFACT
+      name: SNAPSHOT_FILENAME
       type: string
-      description: >
+    - description: |
         Trusted Artifact to use to obtain the Snapshot to validate.
-
-    - name: POLICY_CONFIGURATION
+      name: SOURCE_DATA_ARTIFACT
       type: string
+    - default: enterprise-contract-service/default
       description: |
         Name of the policy configuration (EnterpriseContractPolicy
         resource) to use. `namespace/name` or `name` syntax supported. If
         namespace is omitted the namespace where the task runs is used.
         You can also specify a policy configuration using a git url, e.g.
         `github.com/conforma/config//slsa3`.
-      default: "enterprise-contract-service/default"
-
-    - name: PUBLIC_KEY
+      name: POLICY_CONFIGURATION
       type: string
-      description: >-
-        Public key used to verify signatures. Must be a valid k8s cosign
-        reference, e.g. k8s://my-space/my-secret where my-secret contains
-        the expected cosign.pub attribute.
-      default: ""
-
-    - name: REKOR_HOST
+    - default: ""
+      description: Public key used to verify traditional long-lived signatures. Must be a valid k8s cosign reference, e.g. k8s://my-space/my-secret where my-secret contains the expected cosign.pub attribute. Required for traditional signing key verification. Will be ignored if any of CERTIFICATE_IDENTITY, CERTIFICATE_IDENTITY_REGEXP, CERTIFICATE_OIDC_ISSUER, or CERTIFICATE_OIDC_ISSUER_REGEXP are provided.
+      name: PUBLIC_KEY
       type: string
+    - default: ""
       description: Rekor host for transparency log lookups
-      default: ""
-
-    - name: IGNORE_REKOR
+      name: REKOR_HOST
       type: string
-      description: >-
-        Skip Rekor transparency log checks during validation.
-      default: "false"
-
-    - name: TUF_MIRROR
+    - default: ""
+      description: Expected identity in the signing certificate for keyless verification. This should be the email or URI that was used when signing. You should provide both CERTIFICATE_OIDC_ISSUER and CERTIFICATE_IDENTITY for keyless verification. The PUBLIC_KEY param will be ignored if this is provided.
+      name: CERTIFICATE_IDENTITY
       type: string
+    - default: ""
+      description: Expected OIDC issuer in the signing certificate for keyless verification. This should match the issuer that provided the identity token used for signing. You should provide both CERTIFICATE_OIDC_ISSUER and CERTIFICATE_IDENTITY for keyless verification. The PUBLIC_KEY param will be ignored if this is provided.
+      name: CERTIFICATE_OIDC_ISSUER
+      type: string
+    - default: ""
+      description: Similar to CERTIFICATE_IDENTITY but the value is a regexp that will be matched. Note that CERTIFICATE_IDENTITY takes precedence over this if both are present.
+      name: CERTIFICATE_IDENTITY_REGEXP
+      type: string
+    - default: ""
+      description: Similar to CERTIFICATE_OIDC_ISSUER but a regexp that will be matched. Note that CERTIFICATE_OIDC_ISSUER takes precedence over this if both are present.
+      name: CERTIFICATE_OIDC_ISSUER_REGEXP
+      type: string
+    - default: "false"
+      description: Skip Rekor transparency log checks during validation. Compatible with traditional signing secret signature checks only. If any of the CERTIFICATE_* keyless verification params are present, this value is disregarded and Rekor transparency log checks are included.
+      name: IGNORE_REKOR
+      type: string
+    - default: ""
       description: TUF mirror URL. Provide a value when NOT using public sigstore deployment.
-      default: ""
-
-    - name: SSL_CERT_DIR
+      name: TUF_MIRROR
       type: string
+    - default: ""
       description: |
         Path to a directory containing SSL certs to be used when communicating
         with external services. This is useful when using the integrated registry
@@ -82,174 +68,146 @@ spec:
         certificates issued by a not-commonly trusted root CA. In such cases,
         `/var/run/secrets/kubernetes.io/serviceaccount` is a good value. Multiple
         paths can be provided by using the `:` separator.
-      default: ""
-
-    - name: CA_TRUST_CONFIGMAP_NAME
+      name: SSL_CERT_DIR
       type: string
+    - default: trusted-ca
       description: The name of the ConfigMap to read CA bundle data from.
-      default: trusted-ca
-
-    - name: CA_TRUST_CONFIG_MAP_KEY
+      name: CA_TRUST_CONFIGMAP_NAME
       type: string
+    - default: ca-bundle.crt
       description: The name of the key in the ConfigMap that contains the CA bundle data.
-      default: ca-bundle.crt
-
-    - name: INFO
+      name: CA_TRUST_CONFIG_MAP_KEY
       type: string
+    - default: "true"
       description: Include rule titles and descriptions in the output. Set to `"false"` to disable it.
-      default: "true"
-
-    - name: STRICT
+      name: INFO
       type: string
+    - default: "true"
       description: Fail the task if policy fails. Set to `"false"` to disable it.
-      default: "true"
-
-    - name: HOMEDIR
+      name: STRICT
       type: string
+    - default: /tekton/home
       description: Value for the HOME environment variable.
-      default: /tekton/home
-
-    - name: EFFECTIVE_TIME
+      name: HOMEDIR
       type: string
+    - default: now
       description: Run policy checks with the provided time.
-      default: "now"
-    - name: EXTRA_RULE_DATA
+      name: EFFECTIVE_TIME
       type: string
+    - default: ""
       description: Merge additional Rego variables into the policy data. Use syntax "key=value,key2=value2..."
-      default: ""
-
-    - name: WORKERS
+      name: EXTRA_RULE_DATA
       type: string
-      description: >
+    - default: "4"
+      description: |
         Number of parallel workers to use for policy evaluation.
-      default: "4"
-
-    - name: SINGLE_COMPONENT
+      name: WORKERS
+      type: string
+    - default: "false"
       description: Reduce the Snapshot to only the component whose build caused the Snapshot to be created
+      name: SINGLE_COMPONENT
       type: string
-      default: "false"
-
-    - name: SINGLE_COMPONENT_CUSTOM_RESOURCE
-      description: >
-        Name, including kind, of the Kubernetes resource to query for labels when single
-        component mode is enabled, e.g. pr/somepipeline.
+    - default: unknown
+      description: |
+        Name, including kind, of the Kubernetes resource to query for labels when single component mode is enabled, e.g. pr/somepipeline.
+      name: SINGLE_COMPONENT_CUSTOM_RESOURCE
       type: string
-      default: "unknown"
-
-    - name: SINGLE_COMPONENT_CUSTOM_RESOURCE_NS
-      description: >
-        Kubernetes namespace where the SINGLE_COMPONENT_NAME is found. Only used
-        when single component mode is enabled.
+    - default: ""
+      description: |
+        Kubernetes namespace where the SINGLE_COMPONENT_NAME is found. Only used when single component mode is enabled.
+      name: SINGLE_COMPONENT_CUSTOM_RESOURCE_NS
       type: string
-      default: ""
-
-    - name: ORAS_OPTIONS
+    - default: ""
       description: oras options to pass to Trusted Artifacts calls
+      name: ORAS_OPTIONS
       type: string
-      default: ""
-
-    - name: TRUSTED_ARTIFACTS_DEBUG
+    - default: ""
       description: Flag to enable debug logging in trusted artifacts. Set to a non-empty string to enable.
+      name: TRUSTED_ARTIFACTS_DEBUG
       type: string
-      default: ""
-
-    - name: TRUSTED_ARTIFACTS_EXTRACT_DIR
+    - default: /var/workdir/conforma
       description: Directory to use to extract trusted artifact archive.
+      name: TRUSTED_ARTIFACTS_EXTRACT_DIR
       type: string
-      # need to specify a subfolder during the extract to avoid the error:
-      # tar: .: Cannot change mode to rwxr-sr-x: Operation not permitted
-      default: "/var/workdir/conforma"
-
-    - name: RETRY_DURATION
-      type: string
+    - default: 1s
       description: Base duration for exponential backoff calculation (e.g., "1s", "500ms")
-      default: "1s"
-
-    - name: RETRY_FACTOR
+      name: RETRY_DURATION
       type: string
+    - default: "2.0"
       description: Exponential backoff multiplier (e.g., "2.0", "1.5")
-      default: "2.0"
-
-    - name: RETRY_JITTER
+      name: RETRY_FACTOR
       type: string
+    - default: "0.1"
       description: Randomness factor for backoff calculation (0.0-1.0, e.g., "0.1", "0.2")
-      default: "0.1"
-
-    - name: RETRY_MAX_RETRY
+      name: RETRY_JITTER
       type: string
+    - default: "3"
       description: Maximum number of retry attempts
-      default: "3"
-
-    - name: RETRY_MAX_WAIT
+      name: RETRY_MAX_RETRY
       type: string
+    - default: 3s
       description: Maximum wait time between retries (e.g., "3s", "10s")
-      default: "3s"
-
-    - name: ENABLE_VSA
+      name: RETRY_MAX_WAIT
       type: string
+    - default: "false"
       description: Enable VSA generation
-      default: "false"
-
-    - name: ATTESTATION_FORMAT
+      name: ENABLE_VSA
       type: string
-      description: "Attestation format: dsse (signed envelope) or predicate (raw JSON)"
-      default: "dsse"
-
-    - name: VSA_SIGNING_KEY
+    - default: dsse
+      description: 'Attestation format: dsse (signed envelope) or predicate (raw JSON)'
+      name: ATTESTATION_FORMAT
       type: string
-      description: "Signing key for format=dsse (k8s:// or file:// URL)"
-      default: ""
-
-    - name: VSA_UPLOAD
+    - default: ""
+      description: Signing key for format=dsse (k8s:// or file:// URL)
+      name: VSA_SIGNING_KEY
       type: string
+    - default: local@/var/workdir/conforma/vsa
       description: VSA upload destination
-      default: "local@/var/workdir/vsa"
-
-    - name: ociStorage
+      name: VSA_UPLOAD
       type: string
+    - default: ""
       description: OCI storage URL for trusted artifacts
-      default: ""
-
+      name: ociStorage
+      type: string
   results:
-    - name: TEST_OUTPUT
-      description: Short summary of the policy evaluation for each image
-
-    - name: VSA_GENERATED
-      description: Whether VSAs were generated (true/false)
-
-    - name: sourceDataArtifact
-      description: Trusted Artifact URI containing VSA files
-
+    - description: Short summary of the policy evaluation for each image
+      name: TEST_OUTPUT
+    - description: Whether VSAs were generated (true/false)
+      name: VSA_GENERATED
+    - description: Trusted Artifact URI containing VSA files
+      name: sourceDataArtifact
   stepTemplate:
+    env:
+      - name: ORAS_OPTIONS
+        value: $(params.ORAS_OPTIONS)
+      - name: DEBUG
+        value: $(params.TRUSTED_ARTIFACTS_DEBUG)
+      - name: HOME
+        value: $(params.HOMEDIR)
+    securityContext:
+      runAsUser: 1001
     volumeMounts:
       - mountPath: /var/workdir
         name: workdir
-    env:
-      - name: "ORAS_OPTIONS"
-        value: "$(params.ORAS_OPTIONS)"
-      - name: "DEBUG"
-        value: "$(params.TRUSTED_ARTIFACTS_DEBUG)"
-      - name: HOME
-        value: "$(params.HOMEDIR)"
-
-    # This is a workaround for a problem observed on a particular cluster where the
-    # use-trusted-artifacts step runs with root user causing a docker credential file
-    # to not be readable in later steps. There might be solution coming related to the
-    # security context constraints on the cluster, but setting this explicitly here
-    # should probably be harmless either way.
-    securityContext:
-      runAsUser: 1001
-
+      - mountPath: /mnt/trusted-ca
+        name: trusted-ca
+        readOnly: true
+      - mountPath: /etc/ssl/certs/ca-custom-bundle.crt
+        name: trusted-ca
+        readOnly: true
+        subPath: ca-bundle.crt
   steps:
-    - name: use-trusted-artifact
-      args:
+    - args:
         - use
         - $(params.SOURCE_DATA_ARTIFACT)=$(params.TRUSTED_ARTIFACTS_EXTRACT_DIR)
       computeResources: {}
       image: quay.io/redhat-appstudio/build-trusted-artifacts:e02102ede09aa07187cba066ad547a54724e5cf4
-
-    - name: initialize-tuf
-      image: quay.io/conforma/cli:latest@sha256:7de855ebd9d3c9cb7b50be2216a815227fa2dfc04425cc59d8da82e6af2db0c4
+      name: use-trusted-artifact
+    - env:
+        - name: TUF_MIRROR
+          value: $(params.TUF_MIRROR)
+      image: quay.io/conforma/cli@sha256:573404a03dec31a11aa51dd2bd743a65250a0f9b135c5cfaaa2cc08888e0b6ed
+      name: initialize-tuf
       script: |-
         set -euo pipefail
 
@@ -261,11 +219,8 @@ spec:
         echo 'Initializing TUF root...'
         ec sigstore initialize --mirror "${TUF_MIRROR}" --root "${TUF_MIRROR}/root.json"
         echo 'Done!'
-      env:
-        - name: TUF_MIRROR
-          value: "$(params.TUF_MIRROR)"
-
-    - name: reduce
+    - command:
+        - reduce-snapshot.sh
       env:
         - name: SNAPSHOT
           value: $(params.TRUSTED_ARTIFACTS_EXTRACT_DIR)/$(params.SNAPSHOT_FILENAME)
@@ -277,187 +232,281 @@ spec:
           value: $(params.SINGLE_COMPONENT_CUSTOM_RESOURCE_NS)
         - name: SNAPSHOT_PATH
           value: $(params.HOMEDIR)/snapshot.json
-      image: quay.io/conforma/cli:latest@sha256:7de855ebd9d3c9cb7b50be2216a815227fa2dfc04425cc59d8da82e6af2db0c4
-      onError: continue # progress even if the step fails so we can see the debug logs
-      command: [reduce-snapshot.sh]
-
-    - name: validate
-      image: quay.io/conforma/cli:latest@sha256:7de855ebd9d3c9cb7b50be2216a815227fa2dfc04425cc59d8da82e6af2db0c4
-      onError: continue # progress even if the step fails so we can see the debug logs
+      image: quay.io/conforma/cli@sha256:573404a03dec31a11aa51dd2bd743a65250a0f9b135c5cfaaa2cc08888e0b6ed
+      name: reduce
+      onError: continue
+    - computeResources:
+        limits:
+          memory: 2Gi
+        requests:
+          cpu: 250m
+          memory: 2Gi
+      env:
+        - name: POLICY_CONFIGURATION
+          value: $(params.POLICY_CONFIGURATION)
+        - name: PUBLIC_KEY
+          value: $(params.PUBLIC_KEY)
+        - name: CERTIFICATE_IDENTITY
+          value: $(params.CERTIFICATE_IDENTITY)
+        - name: CERTIFICATE_OIDC_ISSUER
+          value: $(params.CERTIFICATE_OIDC_ISSUER)
+        - name: CERTIFICATE_IDENTITY_REGEXP
+          value: $(params.CERTIFICATE_IDENTITY_REGEXP)
+        - name: CERTIFICATE_OIDC_ISSUER_REGEXP
+          value: $(params.CERTIFICATE_OIDC_ISSUER_REGEXP)
+        - name: REKOR_HOST
+          value: $(params.REKOR_HOST)
+        - name: IGNORE_REKOR
+          value: $(params.IGNORE_REKOR)
+        - name: WORKERS
+          value: $(params.WORKERS)
+        - name: INFO
+          value: $(params.INFO)
+        - name: EFFECTIVE_TIME
+          value: $(params.EFFECTIVE_TIME)
+        - name: EXTRA_RULE_DATA
+          value: $(params.EXTRA_RULE_DATA)
+        - name: RETRY_MAX_WAIT
+          value: $(params.RETRY_MAX_WAIT)
+        - name: RETRY_MAX_RETRY
+          value: $(params.RETRY_MAX_RETRY)
+        - name: RETRY_DURATION
+          value: $(params.RETRY_DURATION)
+        - name: RETRY_FACTOR
+          value: $(params.RETRY_FACTOR)
+        - name: RETRY_JITTER
+          value: $(params.RETRY_JITTER)
+        - name: ENABLE_VSA
+          value: $(params.ENABLE_VSA)
+        - name: ATTESTATION_FORMAT
+          value: $(params.ATTESTATION_FORMAT)
+        - name: VSA_SIGNING_KEY
+          value: $(params.VSA_SIGNING_KEY)
+        - name: VSA_UPLOAD
+          value: $(params.VSA_UPLOAD)
+        - name: HOMEDIR
+          value: $(params.HOMEDIR)
+        - name: SSL_CERT_DIR
+          value: /tekton-custom-certs:/etc/ssl/certs:/etc/pki/tls/certs:/system/etc/security/cacerts:$(params.SSL_CERT_DIR)
+        - name: EC_CACHE
+          value: "false"
+      image: quay.io/conforma/cli@sha256:573404a03dec31a11aa51dd2bd743a65250a0f9b135c5cfaaa2cc08888e0b6ed
+      name: validate
+      onError: continue
       script: |
         #!/bin/bash
         set -euo pipefail
 
-        # Build EC arguments array
-        # POLICY_CONFIGURATION is passed via environment variable to safely handle JSON strings
-        EC_ARGS=(
+        cmd_args=(
           validate
           image
-          --images /tekton/home/snapshot.json
-          --policy "${POLICY_CONFIGURATION}"
-          --public-key "$(params.PUBLIC_KEY)"
-          --rekor-url "$(params.REKOR_HOST)"
-          --ignore-rekor=$(params.IGNORE_REKOR)
-          --workers "$(params.WORKERS)"
-          --info=$(params.INFO)
-          --timeout=100h
-          --strict=false
-          --show-successes
-          --effective-time=$(params.EFFECTIVE_TIME)
-          --extra-rule-data=$(params.EXTRA_RULE_DATA)
+          --images="${HOMEDIR}/snapshot.json"
+          --policy="${POLICY_CONFIGURATION}"
         )
 
-        EC_ARGS+=(
-          --retry-max-wait "$(params.RETRY_MAX_WAIT)"
-          --retry-max-retry "$(params.RETRY_MAX_RETRY)"
-          --retry-duration "$(params.RETRY_DURATION)"
-          --retry-factor "$(params.RETRY_FACTOR)"
-          --retry-jitter "$(params.RETRY_JITTER)"
-          --output "text=$(params.HOMEDIR)/text-report.txt?show-successes=false"
-          --output "appstudio=$(results.TEST_OUTPUT.path)"
-          --output "json=$(params.HOMEDIR)/report-json.json"
+        # To keep bash logic as thin as possible we deliberately don't sanitize
+        # these params. If something is wrong or missing let Conforma handle it.
+
+        if [ -n "${CERTIFICATE_IDENTITY}" ] || \
+           [ -n "${CERTIFICATE_OIDC_ISSUER}" ] || \
+           [ -n "${CERTIFICATE_IDENTITY_REGEXP}" ] || \
+           [ -n "${CERTIFICATE_OIDC_ISSUER_REGEXP}" ]; then
+          # If *any* of the above are non-empty assume the intention is to
+          # try keyless verification
+
+          if [ -n "${CERTIFICATE_IDENTITY}" ]; then
+            cmd_args+=(
+              --certificate-identity="${CERTIFICATE_IDENTITY}"
+            )
+          elif [ -n "${CERTIFICATE_IDENTITY_REGEXP}" ]; then
+            cmd_args+=(
+              --certificate-identity-regexp="${CERTIFICATE_IDENTITY_REGEXP}"
+            )
+          fi
+
+          if [ -n "${CERTIFICATE_OIDC_ISSUER}" ]; then
+            cmd_args+=(
+              --certificate-oidc-issuer="${CERTIFICATE_OIDC_ISSUER}"
+            )
+          elif [ -n "${CERTIFICATE_OIDC_ISSUER_REGEXP}" ]; then
+            cmd_args+=(
+              --certificate-oidc-issuer-regexp="${CERTIFICATE_OIDC_ISSUER_REGEXP}"
+            )
+          fi
+
+          # Force --ignore-rekor to false since we need rekor
+          cmd_args+=(
+            --ignore-rekor=false
+          )
+        else
+          # Assume traditional signing secret verification
+          cmd_args+=(
+            --public-key="${PUBLIC_KEY}"
+            --ignore-rekor="${IGNORE_REKOR}"
+          )
+        fi
+
+        cmd_args+=(
+          --rekor-url="${REKOR_HOST}"
+          --workers="${WORKERS}"
+          --info="${INFO}"
+          --timeout=0
+          --strict=false
+          --show-successes=true
+          --effective-time="${EFFECTIVE_TIME}"
+          --extra-rule-data="${EXTRA_RULE_DATA}"
+          --retry-max-wait="${RETRY_MAX_WAIT}"
+          --retry-max-retry="${RETRY_MAX_RETRY}"
+          --retry-duration="${RETRY_DURATION}"
+          --retry-factor="${RETRY_FACTOR}"
+          --retry-jitter="${RETRY_JITTER}"
+          --output="text=${HOMEDIR}/text-report.txt?show-successes=false"
+          --output="json=${HOMEDIR}/report-json.json"
+          --output="appstudio=$(results.TEST_OUTPUT.path)"
         )
 
         # Add VSA arguments if enabled
-        if [[ "$(params.ENABLE_VSA)" == "true" ]]; then
-          EC_ARGS+=(--vsa --attestation-format=$(params.ATTESTATION_FORMAT))
+        if [[ "${ENABLE_VSA}" == "true" ]]; then
+          cmd_args+=(
+            --vsa="true"
+            --attestation-format="${ATTESTATION_FORMAT}"
+          )
 
-          if [[ "$(params.ATTESTATION_FORMAT)" == "dsse" ]]; then
-            if [[ -z "$(params.VSA_SIGNING_KEY)" ]]; then
+
+          if [[ "${ATTESTATION_FORMAT}" == "dsse" ]]; then
+            if [[ -z "${VSA_SIGNING_KEY}" ]]; then
               echo "ERROR: VSA_SIGNING_KEY required for format=dsse" >&2
               exit 1
             fi
-            EC_ARGS+=(--vsa-signing-key "$(params.VSA_SIGNING_KEY)")
+            cmd_args+=(
+              --vsa-signing-key="${VSA_SIGNING_KEY}"
+              --vsa-upload="${VSA_UPLOAD}"
+            )
           fi
 
-          EC_ARGS+=(--vsa-upload "$(params.VSA_UPLOAD)")
-          echo "true" > $(results.VSA_GENERATED.path)
+          # ec requires --attestation-output-dir to be under /tmp or cwd.
+          # Write there first, then copy to the workdir so
+          # create-trusted-artifact includes them in the archive.
+          VSA_TMP_DIR="/tmp/vsa-output"
+          mkdir -p "$VSA_TMP_DIR"
+          cmd_args+=(
+            --attestation-output-dir="$VSA_TMP_DIR"
+          )
+
+          echo -n "true" > $(results.VSA_GENERATED.path)
         else
-          echo "false" > $(results.VSA_GENERATED.path)
+          echo -n "false" > $(results.VSA_GENERATED.path)
         fi
 
-        # Execute EC with constructed arguments
-        ec "${EC_ARGS[@]}"
-      env:
-        # POLICY_CONFIGURATION is passed via environment variable to safely handle JSON strings
-        # This avoids shell quoting issues when Tekton substitutes parameter values directly in scripts
-        - name: POLICY_CONFIGURATION
-          value: "$(params.POLICY_CONFIGURATION)"
-        - name: SSL_CERT_DIR
-          # The Tekton Operator automatically sets the SSL_CERT_DIR env to the value below but,
-          # of course, without the $(param.SSL_CERT_DIR) bit. When a Task Step sets it to a
-          # value, the Tekton Operator does not do any processing of the value. However, Tekton
-          # Pipelines will fail to execute because some of these values are required for its
-          # execution. As a workaround, append the SSL_CERT_DIR value from params to the default
-          # value expected by Tekton Pipelines. NOTE: If params.SSL_CERT_DIR is empty, the value
-          # will contain a trailing ":" - this is ok.
-          value: "/tekton-custom-certs:/etc/ssl/certs:/etc/pki/tls/certs:/system/etc/security/cacerts:$(params.SSL_CERT_DIR)"
-        # The EC cache is used to avoid fetching the same image layers from the registry more than
-        # once. However, this is not thread safe. This results in inconsistencies when extracting
-        # files from an image, see https://github.com/conforma/cli/issues/1109
-        - name: EC_CACHE
-          value: "false"
-      computeResources:
-        requests:
-          cpu: 250m
-          memory: 2Gi
-        limits:
-          memory: 2Gi
+        # Execute Conforma with constructed arguments
+        ec "${cmd_args[@]}"
+
+        # Copy VSA output from /tmp to workdir for trusted artifact archival
+        if [[ "${ENABLE_VSA}" == "true" ]]; then
+          # Extract local path from VSA_UPLOAD for output directory
+          # VSA_UPLOAD format is "local@/path/to/dir"
+          # Fixme: Because of -o pipefail this will fail the whole task when the grep doesn't match
+          VSA_LOCAL_PATH=$(echo "${VSA_UPLOAD}" | grep -oE '^local@[^ ]+' | sed 's/^local@//' | head -n1 || true)
+          if [[ -n "$VSA_LOCAL_PATH" && -d "/tmp/vsa-output" ]]; then
+            mkdir -p "$VSA_LOCAL_PATH"
+            cp -r /tmp/vsa-output/* "$VSA_LOCAL_PATH"/ 2>/dev/null || true
+            # Include raw JSON report for downstream SLSA VSA generation
+            cp "${HOMEDIR}/report-json.json" "$VSA_LOCAL_PATH"/ 2>/dev/null || true
+          fi
+        fi
       volumeMounts:
-        - name: trusted-ca
-          mountPath: /etc/pki/tls/certs/ca-custom-bundle.crt
-          subPath: ca-bundle.crt
+        - mountPath: /etc/pki/tls/certs/ca-custom-bundle.crt
+          name: trusted-ca
           readOnly: true
-
-    - name: report-json
-      image: quay.io/conforma/cli:latest@sha256:7de855ebd9d3c9cb7b50be2216a815227fa2dfc04425cc59d8da82e6af2db0c4
-      onError: continue  # progress even if the step fails so we can see the debug logs
-      command: [sh, -c]
-      args:
-        # Format the JSON output to wrap lines at 8000 characters per line.
-        # The report can get very large, so add some line breaks
-        # rather than print it as a single line. This makes it easier to render
-        # in the UI, easier to copy/paste, and less likely to cause problems
-        # with logging systems or other consumers of the data (assuming they
-        # correctly parse the full output).
-        - "jq . $(params.HOMEDIR)/report-json.json | awk '{gsub(/^ +/, \"\"); acc += length; if (acc >= 8000) { printf \"\\n\"; acc=length } printf $0 }'"
-
-    - name: summary
-      image: quay.io/conforma/cli:latest@sha256:7de855ebd9d3c9cb7b50be2216a815227fa2dfc04425cc59d8da82e6af2db0c4
-      onError: continue  # progress even if the step fails so we can see the debug logs
-      command: [jq]
-      args:
-        - "."
-        - "$(results.TEST_OUTPUT.path)"
-
-    - name: version
-      image: quay.io/conforma/cli:latest@sha256:7de855ebd9d3c9cb7b50be2216a815227fa2dfc04425cc59d8da82e6af2db0c4
-      command: [ec]
-      args:
-        - version
-
-    - name: show-config
-      image: quay.io/conforma/cli:latest@sha256:7de855ebd9d3c9cb7b50be2216a815227fa2dfc04425cc59d8da82e6af2db0c4
-      command: [jq]
-      args:
-        - '{policy: .policy, key: .key, "effective-time": .["effective-time"]}'
-        - "$(params.HOMEDIR)/report-json.json"
-
-    - name: detailed-report
-      image: quay.io/conforma/cli:latest@sha256:7de855ebd9d3c9cb7b50be2216a815227fa2dfc04425cc59d8da82e6af2db0c4
+          subPath: ca-bundle.crt
+    - args:
+        - jq . $(params.HOMEDIR)/report-json.json | awk '{gsub(/^ +/, ""); acc += length; if (acc >= 8000) { printf "\n"; acc=length } printf $0 }'
+      command:
+        - sh
+        - -c
+      image: quay.io/conforma/cli@sha256:573404a03dec31a11aa51dd2bd743a65250a0f9b135c5cfaaa2cc08888e0b6ed
+      name: report-json
       onError: continue
-      command: ["cat"]
-      args:
-        - "$(params.HOMEDIR)/text-report.txt"
-
-    - name: assert
-      image: quay.io/conforma/cli:latest@sha256:7de855ebd9d3c9cb7b50be2216a815227fa2dfc04425cc59d8da82e6af2db0c4
-      command: [jq]
-      args:
-        - "--argjson"
-        - "strict"
-        - "$(params.STRICT)"
-        - "-e"
-        - >
+    - args:
+        - .
+        - $(results.TEST_OUTPUT.path)
+      command:
+        - jq
+      image: quay.io/conforma/cli@sha256:573404a03dec31a11aa51dd2bd743a65250a0f9b135c5cfaaa2cc08888e0b6ed
+      name: summary
+      onError: continue
+    - args:
+        - version
+      command:
+        - ec
+      image: quay.io/conforma/cli@sha256:573404a03dec31a11aa51dd2bd743a65250a0f9b135c5cfaaa2cc08888e0b6ed
+      name: version
+    - args:
+        - '{policy: .policy, key: .key, "effective-time": .["effective-time"]}'
+        - $(params.HOMEDIR)/report-json.json
+      command:
+        - jq
+      image: quay.io/conforma/cli@sha256:573404a03dec31a11aa51dd2bd743a65250a0f9b135c5cfaaa2cc08888e0b6ed
+      name: show-config
+    - args:
+        - $(params.HOMEDIR)/text-report.txt
+      command:
+        - cat
+      image: quay.io/conforma/cli@sha256:573404a03dec31a11aa51dd2bd743a65250a0f9b135c5cfaaa2cc08888e0b6ed
+      name: detailed-report
+      onError: continue
+    - args:
+        - --argjson
+        - strict
+        - $(params.STRICT)
+        - -e
+        - |
           .result == "SUCCESS" or .result == "WARNING" or ($strict | not)
-        - "$(results.TEST_OUTPUT.path)"
-
-    - name: create-trusted-artifact
-      when:
-        - input: "$(params.ENABLE_VSA)"
-          operator: in
-          values: ["true"]
-        - input: "$(params.ociStorage)"
-          operator: notin
-          values: ["", "empty"]
-      computeResources:
+        - $(results.TEST_OUTPUT.path)
+      command:
+        - jq
+      image: quay.io/conforma/cli@sha256:573404a03dec31a11aa51dd2bd743a65250a0f9b135c5cfaaa2cc08888e0b6ed
+      name: assert
+    - computeResources:
         limits:
           memory: 128Mi
         requests:
-          memory: 128Mi
           cpu: 250m
-      ref:
-        resolver: "git"
-        params:
-          - name: url
-            value: "https://github.com/konflux-ci/release-service-catalog"
-          - name: revision
-            value: "development"
-          - name: pathInRepo
-            value: stepactions/create-trusted-artifact/create-trusted-artifact.yaml
+          memory: 128Mi
+      name: create-trusted-artifact
       params:
         - name: ociStorage
           value: $(params.ociStorage)
         - name: workDir
-          value: /var/workdir
-
+          value: $(params.TRUSTED_ARTIFACTS_EXTRACT_DIR)
+        - name: sourceDataArtifact
+          value: $(results.sourceDataArtifact.path)
+      ref:
+        params:
+          - name: url
+            value: https://github.com/konflux-ci/release-service-catalog
+          - name: revision
+            value: development
+          - name: pathInRepo
+            value: stepactions/create-trusted-artifact/create-trusted-artifact.yaml
+        resolver: git
+      when:
+        - input: $(params.ENABLE_VSA)
+          operator: in
+          values:
+            - "true"
+        - input: $(params.ociStorage)
+          operator: notin
+          values:
+            - ""
+            - empty
   volumes:
-    - name: trusted-ca
-      configMap:
-        name: $(params.CA_TRUST_CONFIGMAP_NAME)
+    - configMap:
         items:
           - key: $(params.CA_TRUST_CONFIG_MAP_KEY)
             path: ca-bundle.crt
+        name: $(params.CA_TRUST_CONFIGMAP_NAME)
         optional: true
-    - name: workdir
-      emptyDir: {}
+      name: trusted-ca
+    - emptyDir: {}
+      name: workdir
