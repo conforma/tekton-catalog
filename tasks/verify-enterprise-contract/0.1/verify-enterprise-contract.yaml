@@ -168,7 +168,7 @@ spec:
         requests:
           cpu: 100m
           memory: 256Mi
-      image: quay.io/conforma/cli@sha256:573404a03dec31a11aa51dd2bd743a65250a0f9b135c5cfaaa2cc08888e0b6ed
+      image: quay.io/conforma/cli@sha256:30f7da8493fd7713cc81b8d96645ae6dbc6b5d152d7d88083fd846e41e3aa365
       name: initialize-tuf
       when:
         - input: $(params.TUF_MIRROR)
@@ -194,7 +194,7 @@ spec:
           value: $(params.SINGLE_COMPONENT_CUSTOM_RESOURCE_NS)
         - name: SNAPSHOT_PATH
           value: $(params.HOMEDIR)/snapshot.json
-      image: quay.io/conforma/cli@sha256:573404a03dec31a11aa51dd2bd743a65250a0f9b135c5cfaaa2cc08888e0b6ed
+      image: quay.io/conforma/cli@sha256:30f7da8493fd7713cc81b8d96645ae6dbc6b5d152d7d88083fd846e41e3aa365
       name: reduce
       onError: continue
     - computeResources:
@@ -242,9 +242,7 @@ spec:
           value: $(params.HOMEDIR)
         - name: SSL_CERT_DIR
           value: /tekton-custom-certs:/etc/ssl/certs:/etc/pki/tls/certs:/system/etc/security/cacerts:$(params.SSL_CERT_DIR)
-        - name: EC_CACHE
-          value: "false"
-      image: quay.io/conforma/cli@sha256:573404a03dec31a11aa51dd2bd743a65250a0f9b135c5cfaaa2cc08888e0b6ed
+      image: quay.io/conforma/cli@sha256:30f7da8493fd7713cc81b8d96645ae6dbc6b5d152d7d88083fd846e41e3aa365
       name: validate
       onError: continue
       script: |
@@ -307,6 +305,7 @@ spec:
           --timeout=0
           --strict=false
           --show-successes=true
+          --show-policy-docs-link=true
           --effective-time="${EFFECTIVE_TIME}"
           --extra-rule-data="${EXTRA_RULE_DATA}"
           --retry-max-wait="${RETRY_MAX_WAIT}"
@@ -338,7 +337,7 @@ spec:
         requests:
           cpu: 100m
           memory: 256Mi
-      image: quay.io/conforma/cli@sha256:573404a03dec31a11aa51dd2bd743a65250a0f9b135c5cfaaa2cc08888e0b6ed
+      image: quay.io/conforma/cli@sha256:30f7da8493fd7713cc81b8d96645ae6dbc6b5d152d7d88083fd846e41e3aa365
       name: report-json
       onError: continue
     - args:
@@ -352,7 +351,7 @@ spec:
         requests:
           cpu: 100m
           memory: 256Mi
-      image: quay.io/conforma/cli@sha256:573404a03dec31a11aa51dd2bd743a65250a0f9b135c5cfaaa2cc08888e0b6ed
+      image: quay.io/conforma/cli@sha256:30f7da8493fd7713cc81b8d96645ae6dbc6b5d152d7d88083fd846e41e3aa365
       name: summary
       onError: continue
     - args:
@@ -365,7 +364,7 @@ spec:
         requests:
           cpu: 100m
           memory: 256Mi
-      image: quay.io/conforma/cli@sha256:573404a03dec31a11aa51dd2bd743a65250a0f9b135c5cfaaa2cc08888e0b6ed
+      image: quay.io/conforma/cli@sha256:30f7da8493fd7713cc81b8d96645ae6dbc6b5d152d7d88083fd846e41e3aa365
       name: version
     - args:
         - '{policy: .policy, key: .key, "effective-time": .["effective-time"]}'
@@ -378,13 +377,13 @@ spec:
         requests:
           cpu: 100m
           memory: 256Mi
-      image: quay.io/conforma/cli@sha256:573404a03dec31a11aa51dd2bd743a65250a0f9b135c5cfaaa2cc08888e0b6ed
+      image: quay.io/conforma/cli@sha256:30f7da8493fd7713cc81b8d96645ae6dbc6b5d152d7d88083fd846e41e3aa365
       name: show-config
     - args:
         - $(params.HOMEDIR)/text-report.txt
       command:
         - cat
-      image: quay.io/conforma/cli@sha256:573404a03dec31a11aa51dd2bd743a65250a0f9b135c5cfaaa2cc08888e0b6ed
+      image: quay.io/conforma/cli@sha256:30f7da8493fd7713cc81b8d96645ae6dbc6b5d152d7d88083fd846e41e3aa365
       name: detailed-report
       onError: continue
     - args:
@@ -403,7 +402,7 @@ spec:
         requests:
           cpu: 100m
           memory: 256Mi
-      image: quay.io/conforma/cli@sha256:573404a03dec31a11aa51dd2bd743a65250a0f9b135c5cfaaa2cc08888e0b6ed
+      image: quay.io/conforma/cli@sha256:30f7da8493fd7713cc81b8d96645ae6dbc6b5d152d7d88083fd846e41e3aa365
       name: assert
   volumes:
     - configMap:
