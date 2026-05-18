@@ -192,21 +192,20 @@ spec:
       - mountPath: /mnt/trusted-ca
         name: trusted-ca
         readOnly: true
-      - mountPath: /etc/ssl/certs/ca-custom-bundle.crt
-        name: trusted-ca
-        readOnly: true
-        subPath: ca-bundle.crt
   steps:
     - args:
         - use
         - $(params.SOURCE_DATA_ARTIFACT)=$(params.TRUSTED_ARTIFACTS_EXTRACT_DIR)
       computeResources: {}
-      image: quay.io/redhat-appstudio/build-trusted-artifacts:e02102ede09aa07187cba066ad547a54724e5cf4
+      env:
+        - name: CA_FILE
+          value: /mnt/trusted-ca/ca-bundle.crt
+      image: quay.io/konflux-ci/build-trusted-artifacts@sha256:9bd32f6bafb517b309e11a2d89365052b4ab3f1c9c23c4ffd45aff6f03960476
       name: use-trusted-artifact
     - env:
         - name: TUF_MIRROR
           value: $(params.TUF_MIRROR)
-      image: quay.io/conforma/cli@sha256:30f7da8493fd7713cc81b8d96645ae6dbc6b5d152d7d88083fd846e41e3aa365
+      image: quay.io/conforma/cli@sha256:101c94eda126e7a3c5ac4e4612e30d98177f041bb418e53914e46681ab9f0073
       name: initialize-tuf
       script: |-
         set -euo pipefail
@@ -232,7 +231,7 @@ spec:
           value: $(params.SINGLE_COMPONENT_CUSTOM_RESOURCE_NS)
         - name: SNAPSHOT_PATH
           value: $(params.HOMEDIR)/snapshot.json
-      image: quay.io/conforma/cli@sha256:30f7da8493fd7713cc81b8d96645ae6dbc6b5d152d7d88083fd846e41e3aa365
+      image: quay.io/conforma/cli@sha256:101c94eda126e7a3c5ac4e4612e30d98177f041bb418e53914e46681ab9f0073
       name: reduce
       onError: continue
     - computeResources:
@@ -288,12 +287,16 @@ spec:
           value: $(params.HOMEDIR)
         - name: SSL_CERT_DIR
           value: /tekton-custom-certs:/etc/ssl/certs:/etc/pki/tls/certs:/system/etc/security/cacerts:$(params.SSL_CERT_DIR)
-      image: quay.io/conforma/cli@sha256:30f7da8493fd7713cc81b8d96645ae6dbc6b5d152d7d88083fd846e41e3aa365
+      image: quay.io/conforma/cli@sha256:101c94eda126e7a3c5ac4e4612e30d98177f041bb418e53914e46681ab9f0073
       name: validate
       onError: continue
       script: |
         #!/bin/bash
         set -euo pipefail
+
+        if [ -f "/mnt/trusted-ca/ca-bundle.crt" ]; then
+            export SSL_CERT_FILE="/mnt/trusted-ca/ca-bundle.crt"
+        fi
 
         cmd_args=(
           validate
@@ -413,17 +416,12 @@ spec:
             cp "${HOMEDIR}/report-json.json" "$VSA_LOCAL_PATH"/ 2>/dev/null || true
           fi
         fi
-      volumeMounts:
-        - mountPath: /etc/pki/tls/certs/ca-custom-bundle.crt
-          name: trusted-ca
-          readOnly: true
-          subPath: ca-bundle.crt
     - args:
         - jq . $(params.HOMEDIR)/report-json.json | awk '{gsub(/^ +/, ""); acc += length; if (acc >= 8000) { printf "\n"; acc=length } printf $0 }'
       command:
         - sh
         - -c
-      image: quay.io/conforma/cli@sha256:30f7da8493fd7713cc81b8d96645ae6dbc6b5d152d7d88083fd846e41e3aa365
+      image: quay.io/conforma/cli@sha256:101c94eda126e7a3c5ac4e4612e30d98177f041bb418e53914e46681ab9f0073
       name: report-json
       onError: continue
     - args:
@@ -431,27 +429,27 @@ spec:
         - $(results.TEST_OUTPUT.path)
       command:
         - jq
-      image: quay.io/conforma/cli@sha256:30f7da8493fd7713cc81b8d96645ae6dbc6b5d152d7d88083fd846e41e3aa365
+      image: quay.io/conforma/cli@sha256:101c94eda126e7a3c5ac4e4612e30d98177f041bb418e53914e46681ab9f0073
       name: summary
       onError: continue
     - args:
         - version
       command:
         - ec
-      image: quay.io/conforma/cli@sha256:30f7da8493fd7713cc81b8d96645ae6dbc6b5d152d7d88083fd846e41e3aa365
+      image: quay.io/conforma/cli@sha256:101c94eda126e7a3c5ac4e4612e30d98177f041bb418e53914e46681ab9f0073
       name: version
     - args:
         - '{policy: .policy, key: .key, "effective-time": .["effective-time"]}'
         - $(params.HOMEDIR)/report-json.json
       command:
         - jq
-      image: quay.io/conforma/cli@sha256:30f7da8493fd7713cc81b8d96645ae6dbc6b5d152d7d88083fd846e41e3aa365
+      image: quay.io/conforma/cli@sha256:101c94eda126e7a3c5ac4e4612e30d98177f041bb418e53914e46681ab9f0073
       name: show-config
     - args:
         - $(params.HOMEDIR)/text-report.txt
       command:
         - cat
-      image: quay.io/conforma/cli@sha256:30f7da8493fd7713cc81b8d96645ae6dbc6b5d152d7d88083fd846e41e3aa365
+      image: quay.io/conforma/cli@sha256:101c94eda126e7a3c5ac4e4612e30d98177f041bb418e53914e46681ab9f0073
       name: detailed-report
       onError: continue
     - args:
@@ -464,7 +462,7 @@ spec:
         - $(results.TEST_OUTPUT.path)
       command:
         - jq
-      image: quay.io/conforma/cli@sha256:30f7da8493fd7713cc81b8d96645ae6dbc6b5d152d7d88083fd846e41e3aa365
+      image: quay.io/conforma/cli@sha256:101c94eda126e7a3c5ac4e4612e30d98177f041bb418e53914e46681ab9f0073
       name: assert
     - computeResources:
         limits:
