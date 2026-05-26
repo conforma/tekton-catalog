@@ -107,6 +107,10 @@ spec:
       description: Merge additional Rego variables into the policy data. Use syntax "key=value,key2=value2..."
       name: EXTRA_RULE_DATA
       type: string
+    - default: sha256:f904979d405a39a3cc492439b379b4b117c622bbe7126a0e1ba76527ec3ce6a2
+      description: Optional OCI digest to pin the release policy bundle. When provided, the policy configuration is resolved and the reference oci::quay.io/conforma/release-policy:konflux is replaced with oci::quay.io/conforma/release-policy@<digest>. Accepts a full digest (sha256:abc123...) or just the hex hash (abc123...).
+      name: POLICY_BUNDLE_DIGEST
+      type: string
     - default: "1"
       description: Number of parallel workers to use for policy evaluation.
       name: WORKERS
@@ -168,7 +172,7 @@ spec:
         requests:
           cpu: 100m
           memory: 256Mi
-      image: quay.io/conforma/cli@sha256:101c94eda126e7a3c5ac4e4612e30d98177f041bb418e53914e46681ab9f0073
+      image: quay.io/conforma/cli@sha256:77d13a6ed7862e822b4d86be59ecb309c8b3bb266510ed04931e399cd9683042
       name: initialize-tuf
       when:
         - input: $(params.TUF_MIRROR)
@@ -194,8 +198,24 @@ spec:
           value: $(params.SINGLE_COMPONENT_CUSTOM_RESOURCE_NS)
         - name: SNAPSHOT_PATH
           value: $(params.HOMEDIR)/snapshot.json
-      image: quay.io/conforma/cli@sha256:101c94eda126e7a3c5ac4e4612e30d98177f041bb418e53914e46681ab9f0073
+      image: quay.io/conforma/cli@sha256:77d13a6ed7862e822b4d86be59ecb309c8b3bb266510ed04931e399cd9683042
       name: reduce
+      onError: continue
+    - command:
+        - pin-konflux-policy-bundle.sh
+      computeResources:
+        limits:
+          memory: 256Mi
+        requests:
+          cpu: 100m
+          memory: 256Mi
+      env:
+        - name: POLICY_CONFIGURATION
+          value: $(params.POLICY_CONFIGURATION)
+        - name: POLICY_BUNDLE_DIGEST
+          value: $(params.POLICY_BUNDLE_DIGEST)
+      image: quay.io/conforma/cli@sha256:77d13a6ed7862e822b4d86be59ecb309c8b3bb266510ed04931e399cd9683042
+      name: pin-policy-bundle
       onError: continue
     - computeResources:
         limits:
@@ -242,12 +262,17 @@ spec:
           value: $(params.HOMEDIR)
         - name: SSL_CERT_DIR
           value: /tekton-custom-certs:/etc/ssl/certs:/etc/pki/tls/certs:/system/etc/security/cacerts:$(params.SSL_CERT_DIR)
-      image: quay.io/conforma/cli@sha256:101c94eda126e7a3c5ac4e4612e30d98177f041bb418e53914e46681ab9f0073
+      image: quay.io/conforma/cli@sha256:77d13a6ed7862e822b4d86be59ecb309c8b3bb266510ed04931e399cd9683042
       name: validate
       onError: continue
       script: |
         #!/bin/bash
         set -euo pipefail
+
+        # Use policy override file if pin-policy-bundle produced one
+        if [[ -f "${HOMEDIR}/policy-with-pinned-bundle.yaml" ]]; then
+          POLICY_CONFIGURATION="${HOMEDIR}/policy-with-pinned-bundle.yaml"
+        fi
 
         cmd_args=(
           validate
@@ -337,7 +362,7 @@ spec:
         requests:
           cpu: 100m
           memory: 256Mi
-      image: quay.io/conforma/cli@sha256:101c94eda126e7a3c5ac4e4612e30d98177f041bb418e53914e46681ab9f0073
+      image: quay.io/conforma/cli@sha256:77d13a6ed7862e822b4d86be59ecb309c8b3bb266510ed04931e399cd9683042
       name: report-json
       onError: continue
     - args:
@@ -351,7 +376,7 @@ spec:
         requests:
           cpu: 100m
           memory: 256Mi
-      image: quay.io/conforma/cli@sha256:101c94eda126e7a3c5ac4e4612e30d98177f041bb418e53914e46681ab9f0073
+      image: quay.io/conforma/cli@sha256:77d13a6ed7862e822b4d86be59ecb309c8b3bb266510ed04931e399cd9683042
       name: summary
       onError: continue
     - args:
@@ -364,7 +389,7 @@ spec:
         requests:
           cpu: 100m
           memory: 256Mi
-      image: quay.io/conforma/cli@sha256:101c94eda126e7a3c5ac4e4612e30d98177f041bb418e53914e46681ab9f0073
+      image: quay.io/conforma/cli@sha256:77d13a6ed7862e822b4d86be59ecb309c8b3bb266510ed04931e399cd9683042
       name: version
     - args:
         - '{policy: .policy, key: .key, "effective-time": .["effective-time"]}'
@@ -377,13 +402,13 @@ spec:
         requests:
           cpu: 100m
           memory: 256Mi
-      image: quay.io/conforma/cli@sha256:101c94eda126e7a3c5ac4e4612e30d98177f041bb418e53914e46681ab9f0073
+      image: quay.io/conforma/cli@sha256:77d13a6ed7862e822b4d86be59ecb309c8b3bb266510ed04931e399cd9683042
       name: show-config
     - args:
         - $(params.HOMEDIR)/text-report.txt
       command:
         - cat
-      image: quay.io/conforma/cli@sha256:101c94eda126e7a3c5ac4e4612e30d98177f041bb418e53914e46681ab9f0073
+      image: quay.io/conforma/cli@sha256:77d13a6ed7862e822b4d86be59ecb309c8b3bb266510ed04931e399cd9683042
       name: detailed-report
       onError: continue
     - args:
@@ -402,7 +427,7 @@ spec:
         requests:
           cpu: 100m
           memory: 256Mi
-      image: quay.io/conforma/cli@sha256:101c94eda126e7a3c5ac4e4612e30d98177f041bb418e53914e46681ab9f0073
+      image: quay.io/conforma/cli@sha256:77d13a6ed7862e822b4d86be59ecb309c8b3bb266510ed04931e399cd9683042
       name: assert
   volumes:
     - configMap:
