@@ -70,7 +70,7 @@ spec:
           value: $(params.configMapNamespace)
         - name: configMapName
           value: $(params.configMapName)
-      image: quay.io/conforma/cli@sha256:77d13a6ed7862e822b4d86be59ecb309c8b3bb266510ed04931e399cd9683042
+      image: quay.io/conforma/cli@sha256:8a8fdc0d37b92093f02220ca9816e65b38994dc3191fb14f0bb07d63f6b3d38c
       name: collect-signing-params
       script: |
         #!/bin/bash
