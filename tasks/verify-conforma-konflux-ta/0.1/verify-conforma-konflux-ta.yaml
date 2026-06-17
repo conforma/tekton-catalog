@@ -98,7 +98,7 @@ spec:
       description: Merge additional Rego variables into the policy data. Use syntax "key=value,key2=value2..."
       name: EXTRA_RULE_DATA
       type: string
-    - default: sha256:84619fc9afab765cbbff2f7cc58539ad3a2eccc16af2580fc87ed08fc937816f
+    - default: sha256:514482fa67a64f9742c4ccdc34b5b843fe659123ddcd034999afb591de92c5d7
       description: Optional OCI digest to pin the release policy bundle. When provided, the policy configuration is resolved and the reference oci::quay.io/conforma/release-policy:konflux is replaced with oci::quay.io/conforma/release-policy@<digest>. Accepts a full digest (sha256:abc123...) or just the hex hash (abc123...).
       name: POLICY_BUNDLE_DIGEST
       type: string
@@ -213,7 +213,7 @@ spec:
     - env:
         - name: TUF_MIRROR
           value: $(params.TUF_MIRROR)
-      image: quay.io/conforma/cli@sha256:8a8fdc0d37b92093f02220ca9816e65b38994dc3191fb14f0bb07d63f6b3d38c
+      image: quay.io/conforma/cli@sha256:1e2ed4e265b9881385dd57e4770ff1a9d21ca79bf72bff810e4dbd37e884df9c
       name: initialize-tuf
       script: |-
         set -euo pipefail
@@ -239,7 +239,7 @@ spec:
           value: $(params.SINGLE_COMPONENT_CUSTOM_RESOURCE_NS)
         - name: SNAPSHOT_PATH
           value: $(params.HOMEDIR)/snapshot.json
-      image: quay.io/conforma/cli@sha256:8a8fdc0d37b92093f02220ca9816e65b38994dc3191fb14f0bb07d63f6b3d38c
+      image: quay.io/conforma/cli@sha256:1e2ed4e265b9881385dd57e4770ff1a9d21ca79bf72bff810e4dbd37e884df9c
       name: reduce
       onError: continue
     - command:
@@ -249,7 +249,7 @@ spec:
           value: $(params.POLICY_CONFIGURATION)
         - name: POLICY_BUNDLE_DIGEST
           value: $(params.POLICY_BUNDLE_DIGEST)
-      image: quay.io/conforma/cli@sha256:8a8fdc0d37b92093f02220ca9816e65b38994dc3191fb14f0bb07d63f6b3d38c
+      image: quay.io/conforma/cli@sha256:1e2ed4e265b9881385dd57e4770ff1a9d21ca79bf72bff810e4dbd37e884df9c
       name: pin-policy-bundle
       onError: continue
     - computeResources:
@@ -307,7 +307,7 @@ spec:
           value: $(params.HOMEDIR)
         - name: SSL_CERT_DIR
           value: /tekton-custom-certs:/etc/ssl/certs:/etc/pki/tls/certs:/system/etc/security/cacerts:$(params.SSL_CERT_DIR)
-      image: quay.io/conforma/cli@sha256:8a8fdc0d37b92093f02220ca9816e65b38994dc3191fb14f0bb07d63f6b3d38c
+      image: quay.io/conforma/cli@sha256:1e2ed4e265b9881385dd57e4770ff1a9d21ca79bf72bff810e4dbd37e884df9c
       name: validate
       onError: continue
       script: |
@@ -446,7 +446,7 @@ spec:
       command:
         - sh
         - -c
-      image: quay.io/conforma/cli@sha256:8a8fdc0d37b92093f02220ca9816e65b38994dc3191fb14f0bb07d63f6b3d38c
+      image: quay.io/conforma/cli@sha256:1e2ed4e265b9881385dd57e4770ff1a9d21ca79bf72bff810e4dbd37e884df9c
       name: report-json
       onError: continue
     - args:
@@ -454,27 +454,27 @@ spec:
         - $(results.TEST_OUTPUT.path)
       command:
         - jq
-      image: quay.io/conforma/cli@sha256:8a8fdc0d37b92093f02220ca9816e65b38994dc3191fb14f0bb07d63f6b3d38c
+      image: quay.io/conforma/cli@sha256:1e2ed4e265b9881385dd57e4770ff1a9d21ca79bf72bff810e4dbd37e884df9c
       name: summary
       onError: continue
     - args:
         - version
       command:
         - ec
-      image: quay.io/conforma/cli@sha256:8a8fdc0d37b92093f02220ca9816e65b38994dc3191fb14f0bb07d63f6b3d38c
+      image: quay.io/conforma/cli@sha256:1e2ed4e265b9881385dd57e4770ff1a9d21ca79bf72bff810e4dbd37e884df9c
       name: version
     - args:
         - '{policy: .policy, key: .key, "effective-time": .["effective-time"]}'
         - $(params.HOMEDIR)/report-json.json
       command:
         - jq
-      image: quay.io/conforma/cli@sha256:8a8fdc0d37b92093f02220ca9816e65b38994dc3191fb14f0bb07d63f6b3d38c
+      image: quay.io/conforma/cli@sha256:1e2ed4e265b9881385dd57e4770ff1a9d21ca79bf72bff810e4dbd37e884df9c
       name: show-config
     - args:
         - $(params.HOMEDIR)/text-report.txt
       command:
         - cat
-      image: quay.io/conforma/cli@sha256:8a8fdc0d37b92093f02220ca9816e65b38994dc3191fb14f0bb07d63f6b3d38c
+      image: quay.io/conforma/cli@sha256:1e2ed4e265b9881385dd57e4770ff1a9d21ca79bf72bff810e4dbd37e884df9c
       name: detailed-report
       onError: continue
     - args:
@@ -487,7 +487,7 @@ spec:
         - $(results.TEST_OUTPUT.path)
       command:
         - jq
-      image: quay.io/conforma/cli@sha256:8a8fdc0d37b92093f02220ca9816e65b38994dc3191fb14f0bb07d63f6b3d38c
+      image: quay.io/conforma/cli@sha256:1e2ed4e265b9881385dd57e4770ff1a9d21ca79bf72bff810e4dbd37e884df9c
       name: assert
     - computeResources:
         limits:
