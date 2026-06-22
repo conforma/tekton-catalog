@@ -98,7 +98,7 @@ spec:
       description: Merge additional Rego variables into the policy data. Use syntax "key=value,key2=value2..."
       name: EXTRA_RULE_DATA
       type: string
-    - default: sha256:514482fa67a64f9742c4ccdc34b5b843fe659123ddcd034999afb591de92c5d7
+    - default: sha256:6f4d4b9bf0a4f5ca7768ef7c47c56c4b324ca4b1f8f5162b04b341fdb562f17a
       description: Optional OCI digest to pin the release policy bundle. When provided, the policy configuration is resolved and the reference oci::quay.io/conforma/release-policy:konflux is replaced with oci::quay.io/conforma/release-policy@<digest>. Accepts a full digest (sha256:abc123...) or just the hex hash (abc123...).
       name: POLICY_BUNDLE_DIGEST
       type: string
