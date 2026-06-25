@@ -4,9 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Tekton task catalog for the Conforma (Enterprise Contract) team. Provides reusable verification tasks consumed as Tekton Bundles. Tasks are primarily synced from the [ec-cli](https://github.com/conforma/cli/) repository.
-
-**Status:** Experimental — tasks are produced and bundled by the ec-cli repo; this catalog tracks and publishes them.
+Tekton task catalog for the Conforma (Enterprise Contract) team. Provides reusable verification tasks consumed as Tekton Bundles in Konflux release pipelines. Tasks are synced from the [conforma/cli](https://github.com/conforma/cli/) repository and referenced by the [release-service-catalog](https://github.com/konflux-ci/release-service-catalog).
 
 ## Tasks
 
