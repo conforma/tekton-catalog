@@ -15,7 +15,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# Use this script to sync the task definitions with the task definitions
+# Use this script to sync the task and pipeline definitions with those
 # found in the conforma/cli repository.
 # Usage:
 #   sync-ec-cli-tasks.sh <PATH_TO_EC_CLI_REPO>
@@ -31,12 +31,16 @@ collect_remote_branches() {
   echo "$(git branch --remote --format '%(refname:lstrip=-1)' --sort=refname --list 'origin/release-v*')"
 }
 
-# get the ec image each task is using and update with the pinned reference
-update_task_images() {
-  pushd tasks > /dev/null
+# pin unpinned quay.io/conforma/cli image references in the given directory
+pin_images() {
+  local dir=${1}
+  if [[ ! -d "${dir}" ]]; then
+    return
+  fi
+  pushd "${dir}" > /dev/null
   images="$(grep -r -h -o -w 'quay.io/conforma/cli:.*' | grep -v '@' | sort -u || true)"
   if [[ -z "${images}" ]]; then
-    echo "No unpinned images found - all images are already pinned"
+    echo "No unpinned images found in ${dir} - all images are already pinned"
     popd > /dev/null
     return
   fi
@@ -50,8 +54,8 @@ update_task_images() {
   popd > /dev/null
 }
 
-# helper function to add tasks to a git branch
-add_tasks() {
+# helper function to add tasks and pipelines to a git branch
+add_definitions() {
   local branch=${1}
   local remote_branch=${2}
   pushd "${EC_CLI_REPO_PATH}" > /dev/null
@@ -59,7 +63,12 @@ add_tasks() {
   popd > /dev/null
   git checkout -B "${branch}" --track "${remote_branch}"
   cp -r "${EC_CLI_REPO_PATH}/tasks" .
-  update_task_images
+  # older release branches don't have pipelines/
+  if [[ -d "${EC_CLI_REPO_PATH}/pipelines" ]]; then
+    cp -r "${EC_CLI_REPO_PATH}/pipelines" .
+  fi
+  pin_images tasks
+  pin_images pipelines
   diff="$(git diff)"
   if [[ -z "${diff}" ]]; then
       echo "No changes to sync"
@@ -67,7 +76,10 @@ add_tasks() {
   fi
 
   git add tasks
-  git commit -m "sync ec task definitions"
+  if [[ -d pipelines ]]; then
+    git add pipelines
+  fi
+  git commit -m "sync ec task and pipeline definitions"
   git push origin "${branch}"
 }
 
@@ -87,10 +99,10 @@ popd > /dev/null
 
 for branch in ${ec_cli_branches[@]}; do
     if ! echo "$tekton_catalog_branches" | grep -Fxq "$branch"; then
-      add_tasks "${branch}" "origin/main"
+      add_definitions "${branch}" "origin/main"
     else
-      add_tasks "${branch}" "origin/${branch}"
+      add_definitions "${branch}" "origin/${branch}"
     fi
 done
 
-add_tasks "main" "origin/main"
+add_definitions "main" "origin/main"
