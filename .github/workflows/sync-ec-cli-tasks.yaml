@@ -3,6 +3,8 @@ name: sync-ec-tasks
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * *'
 
 permissions:
   contents: read
@@ -12,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
 
@@ -39,4 +42,5 @@ jobs:
       run: ./hack/sync-ec-cli-tasks.sh ../cli
       working-directory: tekton-catalog
       env:
-        DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}

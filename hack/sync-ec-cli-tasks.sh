@@ -58,10 +58,12 @@ pin_images() {
 add_definitions() {
   local branch=${1}
   local remote_branch=${2}
+  local base_branch="${remote_branch#origin/}"
+  local sync_branch="sync/${branch}"
   pushd "${EC_CLI_REPO_PATH}" > /dev/null
   git checkout "${branch}"
   popd > /dev/null
-  git checkout -B "${branch}" --track "${remote_branch}"
+  git checkout -B "${sync_branch}" --track "${remote_branch}"
   cp -r "${EC_CLI_REPO_PATH}/tasks" .
   # older release branches don't have pipelines/
   if [[ -d "${EC_CLI_REPO_PATH}/pipelines" ]]; then
@@ -71,7 +73,7 @@ add_definitions() {
   pin_images pipelines
   diff="$(git diff)"
   if [[ -z "${diff}" ]]; then
-      echo "No changes to sync"
+      echo "No changes to sync for ${branch}"
       return
   fi
 
@@ -80,16 +82,18 @@ add_definitions() {
     git add pipelines
   fi
   git commit -m "sync ec task and pipeline definitions"
-  git push origin "${branch}"
+  git push -f origin "${sync_branch}"
+
+  if ! gh pr list --repo "${GH_REPO}" --base "${base_branch}" --head "${sync_branch}" --state open --json number | grep -q number; then
+    gh pr create --repo "${GH_REPO}" --base "${base_branch}" --head "${sync_branch}" \
+      --title "chore: sync task and pipeline definitions to ${branch}" \
+      --body "Automated sync of task and pipeline definitions from conforma/cli \`${branch}\`."
+  fi
 }
 
 if [ -n "${GITHUB_ACTIONS:-}" ]; then
   git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
   git config --global user.name "${GITHUB_ACTOR}"
-  mkdir -p "${HOME}/.ssh"
-  echo "${DEPLOY_KEY}" > "${HOME}/.ssh/id_ed25519"
-  chmod 600 "${HOME}/.ssh/id_ed25519"
-  trap 'rm -rf "${HOME}/.ssh/id_ed25519"' EXIT
 fi
 
 tekton_catalog_branches=$(collect_remote_branches)
