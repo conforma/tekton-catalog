@@ -103,10 +103,10 @@ popd > /dev/null
 
 for branch in ${ec_cli_branches[@]}; do
     if ! echo "$tekton_catalog_branches" | grep -Fxq "$branch"; then
-      add_definitions "${branch}" "origin/main"
-    else
-      add_definitions "${branch}" "origin/${branch}"
+      echo "Skipping ${branch} - no matching branch in tekton-catalog"
+      continue
     fi
+    add_definitions "${branch}" "origin/${branch}"
 done
 
 add_definitions "main" "origin/main"
