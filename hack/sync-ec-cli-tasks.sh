@@ -64,14 +64,15 @@ add_definitions() {
   git checkout "${branch}"
   popd > /dev/null
   git checkout -B "${sync_branch}" --track "${remote_branch}"
-  cp -r "${EC_CLI_REPO_PATH}/tasks" .
+
+  rsync -r --delete "${EC_CLI_REPO_PATH}/tasks/" tasks/
   # older release branches don't have pipelines/
   if [[ -d "${EC_CLI_REPO_PATH}/pipelines" ]]; then
-    cp -r "${EC_CLI_REPO_PATH}/pipelines" .
+    rsync -r --delete "${EC_CLI_REPO_PATH}/pipelines/" pipelines/
   fi
   pin_images tasks
   pin_images pipelines
-  diff="$(git diff)"
+  diff="$(git status --porcelain)"
   if [[ -z "${diff}" ]]; then
       echo "No changes to sync for ${branch}"
       return
