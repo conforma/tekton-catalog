@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   sync-ec-tasks:
+    if: ${{ github.repository == 'conforma/tekton-catalog' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
