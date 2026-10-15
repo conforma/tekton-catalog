@@ -48,6 +48,12 @@ jobs:
         egress-policy: audit
         disable-telemetry: true
 
+    - name: Checkout sync tooling
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        ref: ${{ github.sha }}
+        path: sync-tooling
+
     - name: Checkout tekton-catalog
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
@@ -62,7 +68,7 @@ jobs:
         path: cli
 
     - name: Sync tasks
-      run: ./hack/sync-ec-cli-tasks.sh ../cli
+      run: ../sync-tooling/hack/sync-ec-cli-tasks.sh ../cli
       working-directory: tekton-catalog
 
     - uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
