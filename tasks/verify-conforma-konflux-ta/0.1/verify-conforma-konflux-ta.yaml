@@ -313,7 +313,7 @@ spec:
           value: /mnt/trusted-ca/ca-bundle.crt
 
     - name: initialize-tuf
-      image: quay.io/conforma/cli:latest@sha256:a8ae789b43ca77f5fe03f58e07c828fc00401a80bc0b7b2ff328246befe0bf1f
+      image: quay.io/conforma/cli:latest@sha256:a0cb6fcce80c6d0775e72802e4da58f050ca32ba32e1ea068d314df4a9536837
       imagePullPolicy: IfNotPresent
       script: |-
         set -euo pipefail
@@ -342,7 +342,7 @@ spec:
           value: $(params.SINGLE_COMPONENT_CUSTOM_RESOURCE_NS)
         - name: SNAPSHOT_PATH
           value: $(params.HOMEDIR)/snapshot.json
-      image: quay.io/conforma/cli:latest@sha256:a8ae789b43ca77f5fe03f58e07c828fc00401a80bc0b7b2ff328246befe0bf1f
+      image: quay.io/conforma/cli:latest@sha256:a0cb6fcce80c6d0775e72802e4da58f050ca32ba32e1ea068d314df4a9536837
       imagePullPolicy: IfNotPresent
       onError: continue # progress even if the step fails so we can see the debug logs
       command: [reduce-snapshot.sh]
@@ -353,13 +353,13 @@ spec:
           value: $(params.POLICY_CONFIGURATION)
         - name: POLICY_BUNDLE_DIGEST
           value: $(params.POLICY_BUNDLE_DIGEST)
-      image: quay.io/conforma/cli:latest@sha256:a8ae789b43ca77f5fe03f58e07c828fc00401a80bc0b7b2ff328246befe0bf1f
+      image: quay.io/conforma/cli:latest@sha256:a0cb6fcce80c6d0775e72802e4da58f050ca32ba32e1ea068d314df4a9536837
       imagePullPolicy: IfNotPresent
       onError: continue
       command: [pin-konflux-policy-bundle.sh]
 
     - name: validate
-      image: quay.io/conforma/cli:latest@sha256:a8ae789b43ca77f5fe03f58e07c828fc00401a80bc0b7b2ff328246befe0bf1f
+      image: quay.io/conforma/cli:latest@sha256:a0cb6fcce80c6d0775e72802e4da58f050ca32ba32e1ea068d314df4a9536837
       imagePullPolicy: IfNotPresent
       onError: continue # progress even if the step fails so we can see the debug logs
       script: |
@@ -561,7 +561,7 @@ spec:
           memory: 2Gi
 
     - name: report-json
-      image: quay.io/conforma/cli:latest@sha256:a8ae789b43ca77f5fe03f58e07c828fc00401a80bc0b7b2ff328246befe0bf1f
+      image: quay.io/conforma/cli:latest@sha256:a0cb6fcce80c6d0775e72802e4da58f050ca32ba32e1ea068d314df4a9536837
       imagePullPolicy: IfNotPresent
       onError: continue  # progress even if the step fails so we can see the debug logs
       command: [sh, -c]
@@ -578,7 +578,7 @@ spec:
         - "jq . \"${HOMEDIR}/report-json.json\" | awk '{gsub(/^ +/, \"\"); acc += length; if (acc >= 8000) { printf \"\\n\"; acc=length } printf $0 }'"
 
     - name: summary
-      image: quay.io/conforma/cli:latest@sha256:a8ae789b43ca77f5fe03f58e07c828fc00401a80bc0b7b2ff328246befe0bf1f
+      image: quay.io/conforma/cli:latest@sha256:a0cb6fcce80c6d0775e72802e4da58f050ca32ba32e1ea068d314df4a9536837
       imagePullPolicy: IfNotPresent
       onError: continue  # progress even if the step fails so we can see the debug logs
       command: [jq]
@@ -587,14 +587,14 @@ spec:
         - "$(results.TEST_OUTPUT.path)"
 
     - name: version
-      image: quay.io/conforma/cli:latest@sha256:a8ae789b43ca77f5fe03f58e07c828fc00401a80bc0b7b2ff328246befe0bf1f
+      image: quay.io/conforma/cli:latest@sha256:a0cb6fcce80c6d0775e72802e4da58f050ca32ba32e1ea068d314df4a9536837
       imagePullPolicy: IfNotPresent
       command: [ec]
       args:
         - version
 
     - name: show-config
-      image: quay.io/conforma/cli:latest@sha256:a8ae789b43ca77f5fe03f58e07c828fc00401a80bc0b7b2ff328246befe0bf1f
+      image: quay.io/conforma/cli:latest@sha256:a0cb6fcce80c6d0775e72802e4da58f050ca32ba32e1ea068d314df4a9536837
       imagePullPolicy: IfNotPresent
       command: [jq]
       args:
@@ -602,7 +602,7 @@ spec:
         - "$(params.HOMEDIR)/report-json.json"
 
     - name: detailed-report
-      image: quay.io/conforma/cli:latest@sha256:a8ae789b43ca77f5fe03f58e07c828fc00401a80bc0b7b2ff328246befe0bf1f
+      image: quay.io/conforma/cli:latest@sha256:a0cb6fcce80c6d0775e72802e4da58f050ca32ba32e1ea068d314df4a9536837
       imagePullPolicy: IfNotPresent
       onError: continue
       command: ["cat"]
@@ -610,7 +610,7 @@ spec:
         - "$(params.HOMEDIR)/text-report.txt"
 
     - name: assert
-      image: quay.io/conforma/cli:latest@sha256:a8ae789b43ca77f5fe03f58e07c828fc00401a80bc0b7b2ff328246befe0bf1f
+      image: quay.io/conforma/cli:latest@sha256:a0cb6fcce80c6d0775e72802e4da58f050ca32ba32e1ea068d314df4a9536837
       imagePullPolicy: IfNotPresent
       command: [jq]
       args:
