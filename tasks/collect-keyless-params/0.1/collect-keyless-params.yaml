@@ -88,7 +88,7 @@ spec:
 
   steps:
     - name: collect-signing-params
-      image: quay.io/conforma/cli:latest@sha256:a8ae789b43ca77f5fe03f58e07c828fc00401a80bc0b7b2ff328246befe0bf1f
+      image: quay.io/conforma/cli:latest@sha256:975ec70ab2b851a0e4b4c8cc25ba5ac7068504535305fa9d3d0e5cd0dafcbd7d
       imagePullPolicy: IfNotPresent
 
       computeResources:
