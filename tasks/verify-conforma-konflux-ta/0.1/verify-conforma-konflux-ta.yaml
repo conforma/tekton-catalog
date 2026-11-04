@@ -102,11 +102,11 @@ spec:
       description: Merge additional Rego variables into the policy data. Use syntax "key=value,key2=value2..."
       name: EXTRA_RULE_DATA
       type: string
-    - default: sha256:0d3ab4efb94bd8ee361bda3146cae0c509c41d597431af658ce2570112efe469
+    - default: "sha256:507e458392399feb78ae4159718cf322800ede3ccf88e477015aa2283331b948"
       description: Optional OCI digest to pin the release policy bundle. When provided, the policy configuration is resolved and the reference oci::quay.io/conforma/release-policy:konflux is replaced with oci::quay.io/conforma/release-policy@<digest>. Accepts a full digest (sha256:abc123...) or just the hex hash (abc123...).
       name: POLICY_BUNDLE_DIGEST
       type: string
-    - default: "4"
+    - default: "5"
       description: |
         Number of parallel workers to use for policy evaluation.
       name: WORKERS
@@ -217,7 +217,7 @@ spec:
     - env:
         - name: TUF_MIRROR
           value: $(params.TUF_MIRROR)
-      image: quay.io/conforma/cli@sha256:6c6343486b739836c448277c00b1ec3c291e4ad10fd2b1767ff3984e89a43ad1
+      image: quay.io/conforma/cli@sha256:975ec70ab2b851a0e4b4c8cc25ba5ac7068504535305fa9d3d0e5cd0dafcbd7d
       imagePullPolicy: IfNotPresent
       name: initialize-tuf
       script: |-
@@ -244,7 +244,7 @@ spec:
           value: $(params.SINGLE_COMPONENT_CUSTOM_RESOURCE_NS)
         - name: SNAPSHOT_PATH
           value: $(params.HOMEDIR)/snapshot.json
-      image: quay.io/conforma/cli@sha256:6c6343486b739836c448277c00b1ec3c291e4ad10fd2b1767ff3984e89a43ad1
+      image: quay.io/conforma/cli@sha256:975ec70ab2b851a0e4b4c8cc25ba5ac7068504535305fa9d3d0e5cd0dafcbd7d
       imagePullPolicy: IfNotPresent
       name: reduce
       onError: continue
@@ -255,7 +255,7 @@ spec:
           value: $(params.POLICY_CONFIGURATION)
         - name: POLICY_BUNDLE_DIGEST
           value: $(params.POLICY_BUNDLE_DIGEST)
-      image: quay.io/conforma/cli@sha256:6c6343486b739836c448277c00b1ec3c291e4ad10fd2b1767ff3984e89a43ad1
+      image: quay.io/conforma/cli@sha256:975ec70ab2b851a0e4b4c8cc25ba5ac7068504535305fa9d3d0e5cd0dafcbd7d
       imagePullPolicy: IfNotPresent
       name: pin-policy-bundle
       onError: continue
@@ -316,7 +316,7 @@ spec:
           value: $(params.HOMEDIR)
         - name: SSL_CERT_DIR
           value: /tekton-custom-certs:/etc/ssl/certs:/etc/pki/tls/certs:/system/etc/security/cacerts:$(params.SSL_CERT_DIR)
-      image: quay.io/conforma/cli@sha256:6c6343486b739836c448277c00b1ec3c291e4ad10fd2b1767ff3984e89a43ad1
+      image: quay.io/conforma/cli@sha256:975ec70ab2b851a0e4b4c8cc25ba5ac7068504535305fa9d3d0e5cd0dafcbd7d
       imagePullPolicy: IfNotPresent
       name: validate
       onError: continue
@@ -454,11 +454,14 @@ spec:
           fi
         fi
     - args:
-        - jq . $(params.HOMEDIR)/report-json.json | awk '{gsub(/^ +/, ""); acc += length; if (acc >= 8000) { printf "\n"; acc=length } printf $0 }'
+        - jq . "${HOMEDIR}/report-json.json" | awk '{gsub(/^ +/, ""); acc += length; if (acc >= 8000) { printf "\n"; acc=length } printf $0 }'
       command:
         - sh
         - -c
-      image: quay.io/conforma/cli@sha256:6c6343486b739836c448277c00b1ec3c291e4ad10fd2b1767ff3984e89a43ad1
+      env:
+        - name: HOMEDIR
+          value: $(params.HOMEDIR)
+      image: quay.io/conforma/cli@sha256:975ec70ab2b851a0e4b4c8cc25ba5ac7068504535305fa9d3d0e5cd0dafcbd7d
       imagePullPolicy: IfNotPresent
       name: report-json
       onError: continue
@@ -467,7 +470,7 @@ spec:
         - $(results.TEST_OUTPUT.path)
       command:
         - jq
-      image: quay.io/conforma/cli@sha256:6c6343486b739836c448277c00b1ec3c291e4ad10fd2b1767ff3984e89a43ad1
+      image: quay.io/conforma/cli@sha256:975ec70ab2b851a0e4b4c8cc25ba5ac7068504535305fa9d3d0e5cd0dafcbd7d
       imagePullPolicy: IfNotPresent
       name: summary
       onError: continue
@@ -475,7 +478,7 @@ spec:
         - version
       command:
         - ec
-      image: quay.io/conforma/cli@sha256:6c6343486b739836c448277c00b1ec3c291e4ad10fd2b1767ff3984e89a43ad1
+      image: quay.io/conforma/cli@sha256:975ec70ab2b851a0e4b4c8cc25ba5ac7068504535305fa9d3d0e5cd0dafcbd7d
       imagePullPolicy: IfNotPresent
       name: version
     - args:
@@ -483,14 +486,14 @@ spec:
         - $(params.HOMEDIR)/report-json.json
       command:
         - jq
-      image: quay.io/conforma/cli@sha256:6c6343486b739836c448277c00b1ec3c291e4ad10fd2b1767ff3984e89a43ad1
+      image: quay.io/conforma/cli@sha256:975ec70ab2b851a0e4b4c8cc25ba5ac7068504535305fa9d3d0e5cd0dafcbd7d
       imagePullPolicy: IfNotPresent
       name: show-config
     - args:
         - $(params.HOMEDIR)/text-report.txt
       command:
         - cat
-      image: quay.io/conforma/cli@sha256:6c6343486b739836c448277c00b1ec3c291e4ad10fd2b1767ff3984e89a43ad1
+      image: quay.io/conforma/cli@sha256:975ec70ab2b851a0e4b4c8cc25ba5ac7068504535305fa9d3d0e5cd0dafcbd7d
       imagePullPolicy: IfNotPresent
       name: detailed-report
       onError: continue
@@ -504,7 +507,7 @@ spec:
         - $(results.TEST_OUTPUT.path)
       command:
         - jq
-      image: quay.io/conforma/cli@sha256:6c6343486b739836c448277c00b1ec3c291e4ad10fd2b1767ff3984e89a43ad1
+      image: quay.io/conforma/cli@sha256:975ec70ab2b851a0e4b4c8cc25ba5ac7068504535305fa9d3d0e5cd0dafcbd7d
       imagePullPolicy: IfNotPresent
       name: assert
     - computeResources:
